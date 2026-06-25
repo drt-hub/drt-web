@@ -1,0 +1,119 @@
+{
+  "connectors": [
+    {
+      "type": "amplitude",
+      "display_name": "Amplitude",
+      "kind": "destination"
+    },
+    {
+      "type": "clickhouse",
+      "display_name": "ClickHouse",
+      "kind": "destination"
+    },
+    {
+      "type": "discord",
+      "display_name": "Discord",
+      "kind": "destination"
+    },
+    {
+      "type": "email_smtp",
+      "display_name": "Email",
+      "kind": "destination"
+    },
+    {
+      "type": "file",
+      "display_name": "File",
+      "kind": "destination"
+    },
+    {
+      "type": "github_actions",
+      "display_name": "GitHub Actions",
+      "kind": "destination"
+    },
+    {
+      "type": "google_ads",
+      "display_name": "Google Ads",
+      "kind": "destination"
+    },
+    {
+      "type": "google_sheets",
+      "display_name": "Google Sheets",
+      "kind": "destination"
+    },
+    {
+      "type": "hubspot",
+      "display_name": "HubSpot",
+      "kind": "destination"
+    },
+    {
+      "type": "intercom",
+      "display_name": "Intercom",
+      "kind": "destination"
+    },
+    {
+      "type": "jira",
+      "display_name": "Jira",
+      "kind": "destination"
+    },
+    {
+      "type": "linear",
+      "display_name": "Linear",
+      "kind": "destination"
+    },
+    {
+      "type": "mysql",
+      "display_name": "MySQL",
+      "kind": "destination"
+    },
+    {
+      "type": "notion",
+      "display_name": "Notion",
+      "kind": "destination"
+    },
+    {
+      "type": "parquet",
+      "display_name": "Parquet",
+      "kind": "destination"
+    },
+    {
+      "type": "postgres",
+      "display_name": "PostgreSQL",
+      "kind": "destination"
+    },
+    {
+      "type": "rest_api",
+      "display_name": "REST API",
+      "kind": "destination"
+    },
+    {
+      "type": "sendgrid",
+      "display_name": "SendGrid",
+      "kind": "destination"
+    },
+    {
+      "type": "slack",
+      "display_name": "Slack",
+      "kind": "destination"
+    },
+    {
+      "type": "staged_upload",
+      "display_name": "Staged Upload",
+      "kind": "destination"
+    },
+    {
+      "type": "teams",
+      "display_name": "Microsoft Teams",
+      "kind": "destination"
+    },
+    {
+      "type": "twilio",
+      "display_name": "Twilio",
+      "kind": "destination"
+    },
+    {
+      "type": "zendesk",
+      "display_name": "Zendesk",
+      "kind": "destination"
+    }
+  ]
+}
