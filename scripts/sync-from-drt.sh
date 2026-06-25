@@ -19,9 +19,10 @@ print(m.version("drt-core"))
 PY
 
 # Docs — pulled from the repo so they stay a *view* of drt, never a copy.
+# Shallow full clone (drt is small); simpler + more robust than sparse-checkout,
+# which trips on mixing a directory (docs) and a file (README.md) in cone mode.
 rm -rf .drt-src synced-docs
-git clone --depth 1 --filter=blob:none --sparse https://github.com/drt-hub/drt .drt-src
-git -C .drt-src sparse-checkout set docs README.md
+git clone --depth 1 https://github.com/drt-hub/drt .drt-src
 mkdir -p synced-docs
 cp -r .drt-src/docs/. synced-docs/
 cp .drt-src/README.md synced-docs/README.md
