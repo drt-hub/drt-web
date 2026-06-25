@@ -3,6 +3,8 @@ name: Deploy site (GitHub Pages)
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 # Read the repo, publish to Pages via OIDC.
@@ -42,13 +44,18 @@ jobs:
             echo "ARTIFACT=_site" >> "$GITHUB_ENV"
           fi
 
+      # On pull_request the build above is the check — it proves the site
+      # compiles before merge. The Pages upload + deploy run only on main.
       - uses: actions/configure-pages@v5
+        if: ${{ github.event_name != 'pull_request' }}
       - uses: actions/upload-pages-artifact@v3
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           path: ${{ env.ARTIFACT }}
 
   deploy:
     needs: build
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
