@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>drt — Reverse ETL for the code-first data stack</title>
+    <meta
+      name="description"
+      content="drt is an open-source reverse ETL tool: sync modeled warehouse data back into the tools your team uses. Defined in YAML, run from the terminal, versioned in Git."
+    />
+    <style>
+      :root { --violet: #7c3aed; --ink: #0f1020; --muted: #8a8aa3; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; display: grid; place-items: center;
+        background: radial-gradient(120% 120% at 50% 0%, #141327 0%, var(--ink) 60%);
+        color: #f5f5fb; font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        text-align: center; padding: 2rem;
+      }
+      .wrap { max-width: 640px; }
+      h1 { font-size: clamp(2rem, 6vw, 3.25rem); margin: 0 0 .5rem; letter-spacing: -0.02em; }
+      .accent { color: var(--violet); }
+      p { color: #d6d6e6; }
+      code {
+        background: #1d1c33; border: 1px solid #2c2a4a; border-radius: 8px;
+        padding: .55rem .9rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        display: inline-block; margin: 1rem 0; color: #e9e9f7;
+      }
+      .links { margin-top: 1.5rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+      a.btn {
+        text-decoration: none; padding: .6rem 1.1rem; border-radius: 10px; font-weight: 600;
+        color: #fff; background: var(--violet); border: 1px solid transparent;
+      }
+      a.ghost { background: transparent; border-color: #34324f; color: #cfcfe6; }
+      small { color: var(--muted); display: block; margin-top: 2rem; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Reverse ETL for the<br /><span class="accent">code-first data stack</span></h1>
+      <p>
+        Sync modeled warehouse data back into the tools your team actually uses —
+        REST APIs, Slack, Salesforce, and more. Defined in YAML, run from the
+        terminal, versioned in Git.
+      </p>
+      <code>pip install drt-core</code>
+      <div class="links">
+        <a class="btn" href="https://github.com/drt-hub/drt">GitHub</a>
+        <a class="ghost btn" href="https://pypi.org/project/drt-core/">PyPI</a>
+      </div>
+      <small>Official site coming soon · open source · Apache-2.0</small>
+    </div>
+  </body>
+</html>

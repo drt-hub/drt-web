@@ -1,0 +1,14 @@
+# Node / Docusaurus (added by the port PR)
+node_modules/
+build/
+.docusaurus/
+.cache-loader/
+
+# Pages build scratch
+_site/
+
+# Sync scratch
+.drt-src/
+
+# OS
+.DS_Store

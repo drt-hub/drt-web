@@ -1,0 +1,45 @@
+name: Sync from drt (SSoT)
+
+# Keeps the site a view of drt-hub/drt: regenerates the connector matrix and
+# pulls docs, then opens a PR. Nothing deploys until a maintainer merges it.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+  workflow_dispatch:
+  repository_dispatch:
+    types: [drt-updated] # fired by drt-hub/drt on release / docs merge (optional; needs a PAT secret in drt)
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Regenerate connector matrix + docs from drt
+        run: bash scripts/sync-from-drt.sh
+
+      - name: Open a PR if anything changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-from-drt
+          delete-branch: true
+          title: "chore: sync connector matrix + docs from drt"
+          commit-message: "chore: sync connector matrix + docs from drt-hub/drt"
+          labels: sync
+          body: |
+            Automated SSoT sync from `drt-hub/drt`:
+
+            - regenerated `data/destinations.json` / `data/sources.json` (`drt destinations|sources --format json`)
+            - refreshed `data/version.txt` (PyPI `drt-core`)
+            - pulled `docs/` + `README.md` into `synced-docs/`
+
+            Generated files only — review the diff and **merge to deploy**.
