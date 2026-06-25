@@ -1,0 +1,59 @@
+{
+  "connectors": [
+    {
+      "type": "bigquery",
+      "display_name": "BigQuery",
+      "kind": "source"
+    },
+    {
+      "type": "clickhouse",
+      "display_name": "ClickHouse",
+      "kind": "source"
+    },
+    {
+      "type": "databricks",
+      "display_name": "Databricks",
+      "kind": "source"
+    },
+    {
+      "type": "duckdb",
+      "display_name": "DuckDB",
+      "kind": "source"
+    },
+    {
+      "type": "mysql",
+      "display_name": "MySQL",
+      "kind": "source"
+    },
+    {
+      "type": "postgres",
+      "display_name": "PostgreSQL",
+      "kind": "source"
+    },
+    {
+      "type": "redshift",
+      "display_name": "Redshift",
+      "kind": "source"
+    },
+    {
+      "type": "rest_api",
+      "display_name": "REST API",
+      "kind": "source"
+    },
+    {
+      "type": "snowflake",
+      "display_name": "Snowflake",
+      "kind": "source"
+    },
+    {
+      "type": "sqlite",
+      "display_name": "SQLite",
+      "kind": "source"
+    },
+    {
+      "type": "sqlserver",
+      "display_name": "SQL Server",
+      "kind": "source"
+    }
+  ]
+}
