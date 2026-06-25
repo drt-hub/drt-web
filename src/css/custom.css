@@ -1,0 +1,81 @@
+/* ============================================================
+   drt-web — theme tokens
+   Brand violet #7C3AED (from the icon). Light + dark via
+   Docusaurus' built-in [data-theme] convention.
+   ============================================================ */
+
+:root {
+  /* Infima brand (navbar, links, controls) */
+  --ifm-color-primary: #7c3aed;
+  --ifm-color-primary-dark: #6d28d9;
+  --ifm-color-primary-darker: #5b21b6;
+  --ifm-color-primary-darkest: #4c1d95;
+  --ifm-color-primary-light: #8b5cf6;
+  --ifm-color-primary-lighter: #955ff0;
+  --ifm-color-primary-lightest: #a78bfa;
+
+  --ifm-font-family-base: "Inter", system-ui, -apple-system, sans-serif;
+  --ifm-font-family-monospace: "JetBrains Mono", ui-monospace, monospace;
+  --ifm-heading-font-family: "Space Grotesk", "Inter", sans-serif;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.82);
+  --ifm-navbar-shadow: none;
+  --ifm-code-font-size: 95%;
+
+  /* drt design tokens (consumed by index.module.css) */
+  --drt-ink: #13111c;
+  --drt-ink-soft: #4a4458;
+  --drt-ink-faint: #6f6880;
+  --drt-violet: #7c3aed;
+  --drt-violet-bright: #955ff0;
+  --drt-violet-deep: #5b21b6;
+  --drt-paper: #ffffff;
+  --drt-tint: #f8f5fe;
+  --drt-tint-2: #f2ecfc;
+  --drt-line: #e9e2f6;
+  --drt-line-strong: #d9cff0;
+  --drt-code-bg: #16131f;
+  --drt-code-line: #2a2440;
+  --drt-term-green: #4ade80;
+  --drt-term-dim: #8b83a3;
+  --drt-accent-ink: #5b21b6;
+  --drt-radius: 14px;
+  --drt-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #8b5cf6;
+  --ifm-color-primary-dark: #7c3aed;
+  --ifm-color-primary-darker: #6d28d9;
+  --ifm-color-primary-darkest: #5b21b6;
+  --ifm-color-primary-light: #a78bfa;
+  --ifm-color-primary-lighter: #b794f6;
+  --ifm-color-primary-lightest: #c4b5fd;
+
+  --ifm-background-color: #100d1a;
+  --ifm-navbar-background-color: rgba(16, 13, 26, 0.82);
+
+  --drt-ink: #ece9f5;
+  --drt-ink-soft: #a8a0be;
+  --drt-ink-faint: #7e7796;
+  --drt-violet: #8b5cf6;
+  --drt-violet-bright: #a78bfa;
+  --drt-violet-deep: #a78bfa;
+  --drt-paper: #100d1a;
+  --drt-tint: #15111f;
+  --drt-tint-2: #1e1834;
+  --drt-line: #2a2440;
+  --drt-line-strong: #3b3358;
+  --drt-accent-ink: #a78bfa;
+}
+
+html { scroll-behavior: smooth; }
+
+/* Navbar polish */
+.navbar { backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid transparent; }
+.navbar--fixed-top { border-bottom-color: var(--drt-line); }
+.navbar__title { font-family: var(--ifm-heading-font-family); font-weight: 700; letter-spacing: -0.02em; }
+.navbar__logo { height: 1.7rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
