@@ -27,6 +27,21 @@ jobs:
       - name: Regenerate connector matrix + docs from drt
         run: bash scripts/sync-from-drt.sh
 
+      # Build-check the regenerated site before opening a PR. Bot-created PRs
+      # don't trigger the deploy.yml `pull_request` build (GITHUB_TOKEN can't
+      # trigger workflows), so validate here: if a synced doc/data change breaks
+      # the Docusaurus build, fail the sync instead of opening a broken PR.
+      - uses: actions/setup-node@v4
+        if: ${{ hashFiles('package.json') != '' }}
+        with:
+          node-version: 20
+          cache: npm
+      - name: Build-check regenerated site
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          npm ci
+          npm run build
+
       - name: Open a PR if anything changed
         uses: peter-evans/create-pull-request@v6
         with:
