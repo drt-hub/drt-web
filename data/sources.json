@@ -16,8 +16,18 @@
       "kind": "source"
     },
     {
+      "type": "deltalake",
+      "display_name": "Delta Lake",
+      "kind": "source"
+    },
+    {
       "type": "duckdb",
       "display_name": "DuckDB",
+      "kind": "source"
+    },
+    {
+      "type": "iceberg",
+      "display_name": "Iceberg",
       "kind": "source"
     },
     {
