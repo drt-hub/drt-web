@@ -1,8 +1,23 @@
 {
   "connectors": [
     {
+      "type": "airtable",
+      "display_name": "Airtable",
+      "kind": "destination"
+    },
+    {
       "type": "amplitude",
       "display_name": "Amplitude",
+      "kind": "destination"
+    },
+    {
+      "type": "azure_blob",
+      "display_name": "Azure Blob Storage",
+      "kind": "destination"
+    },
+    {
+      "type": "bigquery",
+      "display_name": "BigQuery",
       "kind": "destination"
     },
     {
@@ -11,8 +26,18 @@
       "kind": "destination"
     },
     {
+      "type": "databricks",
+      "display_name": "Databricks",
+      "kind": "destination"
+    },
+    {
       "type": "discord",
       "display_name": "Discord",
+      "kind": "destination"
+    },
+    {
+      "type": "elasticsearch",
+      "display_name": "Elasticsearch",
       "kind": "destination"
     },
     {
@@ -23,6 +48,11 @@
     {
       "type": "file",
       "display_name": "File",
+      "kind": "destination"
+    },
+    {
+      "type": "gcs",
+      "display_name": "Google Cloud Storage",
       "kind": "destination"
     },
     {
@@ -56,8 +86,18 @@
       "kind": "destination"
     },
     {
+      "type": "klaviyo",
+      "display_name": "Klaviyo",
+      "kind": "destination"
+    },
+    {
       "type": "linear",
       "display_name": "Linear",
+      "kind": "destination"
+    },
+    {
+      "type": "mixpanel",
+      "display_name": "Mixpanel",
       "kind": "destination"
     },
     {
@@ -86,6 +126,16 @@
       "kind": "destination"
     },
     {
+      "type": "s3",
+      "display_name": "Amazon S3",
+      "kind": "destination"
+    },
+    {
+      "type": "salesforce_bulk",
+      "display_name": "Salesforce Bulk",
+      "kind": "destination"
+    },
+    {
       "type": "sendgrid",
       "display_name": "SendGrid",
       "kind": "destination"
@@ -93,6 +143,11 @@
     {
       "type": "slack",
       "display_name": "Slack",
+      "kind": "destination"
+    },
+    {
+      "type": "snowflake",
+      "display_name": "Snowflake",
       "kind": "destination"
     },
     {
