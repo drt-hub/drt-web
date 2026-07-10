@@ -14,7 +14,7 @@ dlt (load into DWH) → dbt (transform) → drt (activate out of DWH)
 - **Tagline:** "Reverse ETL for the code-first data stack"
 - **Install:** `pip install drt-core` or `uv add drt-core`
 - **Package name:** `drt-core` (PyPI) — CLI command is `drt`
-- **Current version:** v0.7.10
+- **Current version:** v0.7.11
 
 ## What drt is NOT
 
@@ -59,7 +59,7 @@ my-project/
 | PostgreSQL | `drt-core[postgres]` | Connection string via env |
 | Redshift | `drt-core[redshift]` | PostgreSQL wire protocol via psycopg2. Supports `schema` (search_path). Port defaults to 5439. |
 | ClickHouse | `drt-core[clickhouse]` | HTTP interface via `clickhouse-connect`. Supports host, port, database, user, password_env. |
-| Snowflake | `drt-core[snowflake]` | Supports account, user, password_env, database, schema, warehouse, role |
+| Snowflake | `drt-core[snowflake]` | Supports account, user, private_key_env (key-pair, preferred — #737) / password_env, database, schema, warehouse, role |
 | MySQL | `drt-core[mysql]` | Uses pymysql. Supports host, port, dbname, user, password_env |
 | Databricks | `drt-core[databricks]` | SQL Warehouse via databricks-sql-connector. Supports Unity Catalog, access_token_env |
 | SQL Server | `drt-core[sqlserver]` | Microsoft SQL Server via pure-Python pymssql. Supports host, port, database, user, password_env |
