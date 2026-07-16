@@ -7,7 +7,13 @@
 
 # drt — data reverse tool
 
-**Reverse ETL for the code-first data stack.**
+### The reverse leg of your data stack.
+
+dlt loads data in, dbt transforms it, and **drt** activates it back out — reverse ETL from your warehouse to the tools your team works in. Declarative YAML, one `drt run`.
+
+<p align="center">
+  <code>dlt</code> <sub>load</sub> &nbsp;→&nbsp; <code>dbt</code> <sub>transform</sub> &nbsp;→&nbsp; <b><code>drt</code></b> <sub>activate</sub>
+</p>
 
 [![CI](https://img.shields.io/github/actions/workflow/status/drt-hub/drt/ci.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=CI)](https://github.com/drt-hub/drt/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/drt-hub/drt?style=flat-square&logo=codecov&logoColor=white&label=coverage)](https://codecov.io/gh/drt-hub/drt)
@@ -27,9 +33,6 @@
 
 </div>
 
-**drt** syncs data from your data warehouse to external services — declaratively, via YAML and CLI.
-Think `dbt run` → `drt run`. Same developer experience, opposite data direction.
-
 <p align="center">
   <img src="docs/assets/quickstart.gif" alt="drt quickstart demo" width="700">
 </p>
@@ -47,12 +50,32 @@ drt init && drt run
 
 ## Why drt?
 
-| Problem                              | drt's answer             |
-| ------------------------------------ | ------------------------ |
-| Census/Hightouch are expensive SaaS  | Free, self-hosted OSS    |
-| GUI-first tools don't fit CI/CD      | CLI + YAML, Git-native   |
-| dbt/dlt ecosystem has no reverse leg | Same philosophy, same DX |
-| LLM/MCP era makes GUI SaaS overkill  | LLM-native by design     |
+<table>
+<tr>
+<td width="50%">
+
+**Same DX as dbt.** If you know `dbt run`, you already know `drt run` — declarative YAML, versioned in Git, reviewed in PRs.
+
+</td>
+<td width="50%">
+
+**CI-native.** Exit codes and `--output json` drop straight into GitHub Actions, cron, or Dagster / Airflow / Prefect — no GUI, no clickops.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**LLM-native.** A built-in MCP server and Claude Code skills let AI tools author and run your syncs.
+
+</td>
+<td width="50%">
+
+**Free and open source.** Every connector, the CLI, the MCP server, and the sync engine — Apache 2.0, self-hosted, no lock-in.
+
+</td>
+</tr>
+</table>
 
 > **What's always free?** All connectors, CLI, MCP server, and sync engine. See [OPEN_CORE.md](./OPEN_CORE.md) for the open core boundary.
 
@@ -123,9 +146,14 @@ drt list                    # list sync definitions
 drt sources                 # list available source connectors
 drt destinations            # list available destination connectors
 drt run                     # run all syncs
-drt run --select <name>     # run a specific sync
-drt run --all               # discover and run all syncs
-drt run --select tag:<tag>  # run syncs matching a tag
+drt run --select <name>     # run a specific sync (globs work: 'users_*')
+drt run --select tag:<tag>  # run syncs matching a tag (repeat --select to union)
+drt run --select destination:<type>  # run syncs by destination type
+drt run --exclude <name>    # subtract syncs (same grammar as --select)
+drt run --failed            # re-run only syncs that failed last time
+drt run --limit 10          # sampled run: send only N rows (watermark frozen)
+drt run --fail-fast         # stop scheduling after the first failure
+drt run --vars 'lookback_days: 1'   # override project vars: for this run
 drt run --threads 4         # parallel sync execution
 drt run --dry-run           # dry run
 drt run --verbose           # show row-level error details
@@ -135,6 +163,7 @@ drt run --profile prd       # override profile (or DRT_PROFILE env var)
 drt run --cursor-value '…'  # override watermark cursor for backfill
 drt test                    # run post-sync validation tests
 drt test --select <name>    # test a specific sync
+drt build                   # run each sync and its tests in one pass
 drt validate                # validate sync YAML configs
 drt status                  # show recent sync status
 drt status --output json    # JSON output for status
@@ -145,6 +174,7 @@ drt profile add <name>      # interactively add a profile
 drt profile remove <name>   # remove a profile
 drt serve                   # start HTTP webhook endpoint
 drt docs generate --format mermaid  # print project DAG as Mermaid
+drt deploy github-actions   # scaffold a scheduled sync workflow (drt-action + secrets wired)
 drt mcp run                 # start MCP server (requires drt-core[mcp])
 drt --install-completion    # install shell completion (bash/zsh/fish)
 drt --show-completion       # show completion script

@@ -26,7 +26,7 @@ dlt (load into DWH) → dbt (transform) → drt (activate out of DWH)
 ## Architecture
 
 ```
-drt_project.yml          # project config (source profile)
+drt_project.yml          # project config (source profile, vars:)
 syncs/*.yml              # one file per sync definition
 
 CLI (drt run)
@@ -41,7 +41,7 @@ CLI (drt run)
 
 ```
 my-project/
-├── drt_project.yml       # required: project name + source profile
+├── drt_project.yml       # required: project name + source profile (+ optional vars:)
 ├── syncs/
 │   ├── notify_slack.yml  # one sync per file
 │   └── update_hubspot.yml
@@ -117,18 +117,26 @@ drt run --verbose                 # show row-level error details on failure
 drt run --output json             # structured JSON output for CI/scripting
 drt run --log-format json         # structured JSON logging to stderr
 drt run --profile prd             # override profile (or DRT_PROFILE env var)
-drt run --all                     # discover and run all syncs
-drt run --select tag:<tag>        # run syncs matching a tag
+drt run --select 'users_*'        # glob selection (#771)
+drt run --select tag:<tag>        # run syncs matching a tag (repeat --select to union)
+drt run --select destination:hubspot  # select by destination type (#771)
+drt run --exclude <name-or-selector>  # subtract from the selection (#771)
+drt run --failed                  # re-run only syncs whose last status != success (#773; record-level replay is `drt retry`)
+drt run --limit 10                # sampled run (#774): extract at most N rows; watermark does NOT advance; refused for mirror/replace
+drt run --fail-fast               # stop scheduling after first failure (#775); remaining syncs report status=skipped; also on drt test
 drt run --threads 4               # parallel sync execution
 drt run --cursor-value '2026-01-01 00:00:00'  # override watermark cursor for backfill
 drt test                          # run post-sync validation tests
 drt test --select <sync-name>     # test a specific sync
+drt build                         # run + test per sync in one pass (#777); test failure = sync failed (no rollback); sequential
+drt build --select tag:crm --fail-fast
 drt sources                       # list available source connectors
 drt destinations                  # list available destination connectors
 drt status                        # show recent sync results
 drt status --output json          # JSON output for status
 drt mcp run                       # start MCP server (requires drt-core[mcp])
 drt serve --port 8080             # start HTTP webhook endpoint (POST /sync/<name>)
+drt deploy github-actions --schedule "40 3 * * *"  # scaffold .github/workflows/drt-sync.yml — drt-action wired, extras inferred, required secrets enumerated (#785)
 ```
 
 ## MCP Server
@@ -218,6 +226,8 @@ Slash command versions also available in `.claude/commands/` for manual installa
 - Cursor comparison uses numeric ordering when possible (handles integer/float cursors correctly)
 - **Template variable**: Use `{{ cursor_value }}` (or `{{ watermark }}`) in model SQL for flexible WHERE placement. When present, auto-injection is skipped.
 - **Remote watermark storage**: For stateless environments (e.g., Cloud Run Jobs), set `sync.watermark.storage` to `gcs` or `bigquery` to persist cursor values externally instead of `.drt/state.json`.
+- **Overlap window** (#759): `sync.watermark.lag` re-reads a window behind the stored watermark (`"1 hour"` for timestamp cursors — same grammar as `freshness.max_age` — or a positive int for numeric cursors) so late-arriving rows are re-synced. Applies only to storage-sourced watermarks (never `--cursor-value` or `default_value`), and the persisted watermark itself is never lagged. Overlap rows are re-sent every run, so the destination must tolerate duplicates (e.g. `upsert_key`).
+- **REST API source** (#767): set `incremental: {start_param: updated_since}` on the `rest_api` profile — the engine hands the watermark to the source, which sends it as a request query param so the API filters server-side. Without `start_param`, `mode: incremental` re-extracts the full endpoint every run (warning logged).
 
 **Upsert mode**: Semantic alias for `mode: full` when `upsert_key` is set. Makes YAML intent explicit.
 - Set `sync.mode: upsert` — behaves identically to `mode: full`

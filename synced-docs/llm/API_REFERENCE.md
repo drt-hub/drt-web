@@ -14,10 +14,48 @@ profile: default          # optional, default: "default" — maps to ~/.drt/prof
 history:                  # optional: sync execution history (#276)
   enabled: true           # default: true — set to false to disable history altogether
   retention_days: 30      # default: 30 — entries older than this are pruned on each append
+vars:                     # optional: project vars (#783) — reviewed, in-repo defaults
+  lookback_days: 7        # referenced as {{ var('lookback_days') }}
+  hubspot_pipeline: default
 ```
 
 History is stored under `.drt/history/<sync_name>.jsonl` (one file per sync, JSONL format).
 Inspect via `drt status --history` or the `drt_get_history` MCP tool.
+
+### Project vars (#783)
+
+Anything project-shaped — a default lookback window, a campaign tag, the pipeline id that
+differs between sandbox and prod — belongs in `vars:` rather than an environment variable.
+Reference them with `{{ var('name') }}` or `{{ var('name', default) }}` in **model SQL** and
+**YAML string fields** (alongside `${ENV}`):
+
+```yaml
+# syncs/users.yml
+model: |
+  SELECT * FROM mart_users
+  WHERE updated_at > CURRENT_DATE - {{ var('lookback_days') }}
+destination:
+  type: hubspot
+  pipeline: "{{ var('hubspot_pipeline') }}"
+```
+
+```bash
+drt run --vars 'lookback_days: 1, hubspot_pipeline: sandbox'
+```
+
+**Precedence** (highest first): `--vars` > `DRT_VAR_<NAME>` env var > project `vars:`.
+An undefined var with no default is a **validate-time** error — `drt validate` reports it per
+file (including vars used inside `model:` SQL) instead of failing halfway through a run.
+
+Vars are **scalar-shaped**: a rendered var becomes a string that pydantic coerces to the
+field's type (`{{ var('lookback_days') }}` → `"7"` → `7`). A list/dict var interpolated into a
+YAML field renders as its Python repr and will fail that field's validation — use one var per
+scalar, the same shape `${ENV}` substitution already has.
+
+`var()` joins the deliberately tiny SQL template surface (`cursor_value` / `watermark`) and
+composes with it in a single render. Full Jinja control flow and macros are an explicit
+non-goal — the surface stays predictable. Var values interpolate into SQL text exactly like
+`${ENV}` does: they are reviewed project config, not user input.
 
 ---
 
@@ -67,6 +105,20 @@ ch_prod:
   database: default
   user: default
   password_env: CLICKHOUSE_PASSWORD
+
+# REST API example (source):
+api_users:
+  type: rest_api
+  url: https://api.example.com/users
+  auth:                       # optional — bearer | api_key | basic | oauth2_client_credentials
+    type: bearer
+    token_env: USERS_API_TOKEN
+  pagination:                 # optional — offset | cursor | link_header
+    type: offset
+    limit: 100
+  result_path: data.items     # optional dot-path to the records array
+  incremental:                # optional (#767) — used by mode: incremental syncs
+    start_param: updated_since  # request param that receives the last watermark value
 ```
 
 ---
@@ -135,6 +187,7 @@ sync:                       # optional: all fields have defaults
     project: my-project     # BigQuery only
     dataset: my_dataset     # BigQuery only
     default_value: "2026-01-01 00:00:00"  # optional: fallback cursor for first run (v0.6.2)
+    lag: "1 hour"           # optional (#759): overlap window — re-read this far behind the stored watermark to catch late-arriving rows. Duration string for timestamp cursors ("1 hour", same grammar as freshness.max_age) or positive int for numeric cursors. Storage-sourced watermarks only (never --cursor-value / default_value); the persisted watermark is never lagged. Overlap rows are RE-SENT each run — destination must tolerate duplicates (upsert_key)
   batch_size: 100           # default: 100 — rows per destination call
   on_error: fail            # "fail" (default) | "skip"
   field_mappings:           # optional (#415): declarative column rename {source_column: destination_field}
