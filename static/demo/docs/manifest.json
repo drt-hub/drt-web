@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "drt_version": "0.1.0.dev0",
+  "generated_at": "2026-07-17T23:41:42Z",
+  "project": {
+    "name": "acme-analytics",
+    "profile": "bq_prod"
+  },
+  "syncs": [
+    {
+      "name": "accounts_to_pg",
+      "source": "bq_prod",
+      "destination": "dest_postgres_public_accounts",
+      "mode": "full",
+      "description": "Full refresh of the account dimension.",
+      "tags": [
+        "core"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T21:05:00Z",
+        "last_cursor_value": null,
+        "rows_synced": 0,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "alerts_to_slack",
+      "source": "bq_prod",
+      "destination": "dest_slack_webhook",
+      "mode": "full",
+      "description": "Post anomaly alerts to #alerts.",
+      "tags": [
+        "ops"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T22:55:33Z",
+        "last_cursor_value": null,
+        "rows_synced": 0,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "errors_to_slack",
+      "source": "bq_prod",
+      "destination": "dest_slack_webhook",
+      "mode": "full",
+      "description": "Stream pipeline errors to the on-call channel.",
+      "tags": [
+        "ops"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T18:00:00Z",
+        "last_cursor_value": null,
+        "rows_synced": 14,
+        "last_status": "partial",
+        "last_error": "rate limited, 2 retries"
+      }
+    },
+    {
+      "name": "inventory_to_pg",
+      "source": "bq_prod",
+      "destination": "dest_postgres_public_inventory",
+      "mode": "incremental",
+      "description": "Warehouse inventory deltas.",
+      "tags": [
+        "ops"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T19:15:00Z",
+        "last_cursor_value": "2026-07-09T19:00:00Z",
+        "rows_synced": 77,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "leads_to_hubspot",
+      "source": "bq_prod",
+      "destination": "dest_hubspot_contacts",
+      "mode": "incremental",
+      "description": "Sync qualified leads for the GTM team.",
+      "tags": [
+        "gtm"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T16:00:00Z",
+        "last_cursor_value": "2026-07-09T15:30:00Z",
+        "rows_synced": 430,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "orders_to_pg",
+      "source": "bq_prod",
+      "destination": "dest_postgres_public_orders",
+      "mode": "upsert",
+      "description": "Sync orders, enriched via user + product lookups.",
+      "tags": [
+        "core"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T23:00:48Z",
+        "last_cursor_value": null,
+        "rows_synced": 502,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "products_to_pg",
+      "source": "bq_prod",
+      "destination": "dest_postgres_public_products",
+      "mode": "full",
+      "description": "Product catalog snapshot.",
+      "tags": [],
+      "state": {
+        "last_sync_at": "2026-07-09T20:30:00Z",
+        "last_cursor_value": null,
+        "rows_synced": 312,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "sessions_to_pg",
+      "source": "bq_prod",
+      "destination": "dest_postgres_public_sessions",
+      "mode": "incremental",
+      "description": "Session rollups keyed by user.",
+      "tags": [
+        "analytics"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T22:10:30Z",
+        "last_cursor_value": "2026-07-09T22:00:00Z",
+        "rows_synced": 940,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "users_to_hubspot",
+      "source": "bq_prod",
+      "destination": "dest_hubspot_contacts",
+      "mode": "incremental",
+      "description": "Upsert users as HubSpot contacts.",
+      "tags": [
+        "gtm",
+        "pii"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T22:00:11Z",
+        "last_cursor_value": "2026-07-09T21:45:00Z",
+        "rows_synced": 1248,
+        "last_status": "success",
+        "last_error": null
+      }
+    },
+    {
+      "name": "users_to_pg",
+      "source": "bq_prod",
+      "destination": "dest_postgres_public_users",
+      "mode": "incremental",
+      "description": "Mirror warehouse users into the app database.",
+      "tags": [
+        "core",
+        "pii"
+      ],
+      "state": {
+        "last_sync_at": "2026-07-09T23:55:12Z",
+        "last_cursor_value": "2026-07-09T23:50:00Z",
+        "rows_synced": 1248,
+        "last_status": "success",
+        "last_error": null
+      }
+    }
+  ],
+  "sources": [
+    {
+      "name": "bq_prod",
+      "type": "bigquery"
+    }
+  ],
+  "destinations": [
+    {
+      "name": "dest_postgres_public_accounts",
+      "type": "postgres",
+      "label": "postgres (public.accounts)"
+    },
+    {
+      "name": "dest_slack_webhook",
+      "type": "slack",
+      "label": "slack (webhook)"
+    },
+    {
+      "name": "dest_postgres_public_inventory",
+      "type": "postgres",
+      "label": "postgres (public.inventory)"
+    },
+    {
+      "name": "dest_hubspot_contacts",
+      "type": "hubspot",
+      "label": "hubspot (contacts)"
+    },
+    {
+      "name": "dest_postgres_public_orders",
+      "type": "postgres",
+      "label": "postgres (public.orders)"
+    },
+    {
+      "name": "dest_postgres_public_products",
+      "type": "postgres",
+      "label": "postgres (public.products)"
+    },
+    {
+      "name": "dest_postgres_public_sessions",
+      "type": "postgres",
+      "label": "postgres (public.sessions)"
+    },
+    {
+      "name": "dest_postgres_public_users",
+      "type": "postgres",
+      "label": "postgres (public.users)"
+    }
+  ],
+  "edges": [
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "accounts_to_pg"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "accounts_to_pg",
+      "to": "dest_postgres_public_accounts"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "alerts_to_slack"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "alerts_to_slack",
+      "to": "dest_slack_webhook"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "errors_to_slack"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "errors_to_slack",
+      "to": "dest_slack_webhook"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "inventory_to_pg"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "inventory_to_pg",
+      "to": "dest_postgres_public_inventory"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "leads_to_hubspot"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "leads_to_hubspot",
+      "to": "dest_hubspot_contacts"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "orders_to_pg"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "orders_to_pg",
+      "to": "dest_postgres_public_orders"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "products_to_pg"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "products_to_pg",
+      "to": "dest_postgres_public_products"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "sessions_to_pg"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "sessions_to_pg",
+      "to": "dest_postgres_public_sessions"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "users_to_hubspot"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "users_to_hubspot",
+      "to": "dest_hubspot_contacts"
+    },
+    {
+      "kind": "source_to_sync",
+      "from": "bq_prod",
+      "to": "users_to_pg"
+    },
+    {
+      "kind": "sync_to_destination",
+      "from": "users_to_pg",
+      "to": "dest_postgres_public_users"
+    },
+    {
+      "kind": "lookup",
+      "from": "users_to_pg",
+      "to": "orders_to_pg"
+    },
+    {
+      "kind": "lookup",
+      "from": "products_to_pg",
+      "to": "orders_to_pg"
+    },
+    {
+      "kind": "lookup",
+      "from": "users_to_pg",
+      "to": "sessions_to_pg"
+    }
+  ]
+}
