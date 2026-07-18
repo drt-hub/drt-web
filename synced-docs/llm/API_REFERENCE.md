@@ -193,6 +193,10 @@ sync:                       # optional: all fields have defaults
   field_mappings:           # optional (#415): declarative column rename {source_column: destination_field}
     user_id: id             # applied after extraction + cursor tracking + lookups, just before the destination
     full_name: name         # cursor_field / lookups use SOURCE names; upsert_key / destination columns use MAPPED names
+  mask:                     # optional (#427/#660): PII masking — obscure fields before they reach the destination
+    email: hash             # "hash" (SHA-256 hex) | "redact" ("[REDACTED]"); keys reference the DESTINATION-facing name (post field_mappings)
+    name: { strategy: truncate, length: 2 }  # object form for parameterised strategies (truncate keeps the first N chars)
+    # runs as the LAST transform (after field_mappings); nulls pass through; works on every destination; source SQL untouched
   dlq:                      # optional (#278): Dead Letter Queue — persist per-record load failures for replay
     enabled: false          # default: false (opt-in) — writes FULL records to .drt/dlq/<sync>.jsonl (a PII decision)
     max_records: 10000      # default: 10000 — cap queue size; oldest entries dropped past this (0 = unbounded)
@@ -204,6 +208,11 @@ sync:                       # optional: all fields have defaults
     backoff_multiplier: 2.0 # default: 2.0 — set to 1.0 for linear/constant backoff
     max_backoff: 60.0       # default: 60.0 seconds
     retryable_status_codes: [429, 500, 502, 503, 504]  # default as shown
+    # Retry-After (#769): when a retryable HTTP response (429/503 from Slack,
+    # HubSpot, Intercom, Zendesk, …) sends a `Retry-After` header (delay-seconds
+    # or HTTP-date), drt waits max(retry_after, computed_backoff), capped by
+    # max_backoff — honouring the server instead of retrying too early/late.
+    # Header-less responses and network errors keep pure exponential backoff.
 
 # Per-destination retry override (#277): set `retry:` inside any HTTP
 # destination block to override `sync.retry` for that destination only.
