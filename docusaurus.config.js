@@ -101,6 +101,7 @@ const config = {
           {to: '/#why', label: 'Why drt', position: 'left'},
           {to: '/#connectors', label: 'Connectors', position: 'left'},
           {to: '/#quickstart', label: 'Quickstart', position: 'left'},
+          {href: 'pathname:///demo/docs/', label: 'Live demo', position: 'left'},
           {href: 'https://pypi.org/project/drt-core/', label: 'PyPI', position: 'right'},
           {href: 'https://github.com/drt-hub/drt', label: 'GitHub', position: 'right'},
         ],
