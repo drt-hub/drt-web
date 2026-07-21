@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
-  "drt_version": "0.8.0",
-  "generated_at": "2026-07-21T05:56:13Z",
+  "schema_version": 2,
+  "drt_version": "0.8.1",
+  "generated_at": "2026-07-21T08:05:46Z",
   "project": {
     "name": "acme-analytics",
     "profile": "bq_prod"
@@ -22,7 +22,8 @@
         "rows_synced": 0,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "dlq_depth": 0
     },
     {
       "name": "alerts_to_slack",
@@ -39,7 +40,8 @@
         "rows_synced": 0,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "dlq_depth": 0
     },
     {
       "name": "errors_to_slack",
@@ -56,7 +58,8 @@
         "rows_synced": 14,
         "last_status": "partial",
         "last_error": "rate limited, 2 retries"
-      }
+      },
+      "dlq_depth": 0
     },
     {
       "name": "inventory_to_pg",
@@ -73,7 +76,8 @@
         "rows_synced": 77,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "dlq_depth": 0
     },
     {
       "name": "leads_to_hubspot",
@@ -90,7 +94,8 @@
         "rows_synced": 430,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "dlq_depth": 0
     },
     {
       "name": "orders_to_pg",
@@ -107,7 +112,20 @@
         "rows_synced": 502,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "fields": [
+        {
+          "name": "amount_usd",
+          "source_name": "amount",
+          "mask": null
+        },
+        {
+          "name": "id",
+          "source_name": "order_id",
+          "mask": null
+        }
+      ],
+      "dlq_depth": 0
     },
     {
       "name": "products_to_pg",
@@ -122,7 +140,8 @@
         "rows_synced": 312,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "dlq_depth": 0
     },
     {
       "name": "sessions_to_pg",
@@ -139,7 +158,8 @@
         "rows_synced": 940,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "dlq_depth": 0
     },
     {
       "name": "users_to_hubspot",
@@ -157,7 +177,15 @@
         "rows_synced": 1248,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "fields": [
+        {
+          "name": "email",
+          "source_name": "email",
+          "mask": "hash"
+        }
+      ],
+      "dlq_depth": 0
     },
     {
       "name": "users_to_pg",
@@ -175,7 +203,15 @@
         "rows_synced": 1248,
         "last_status": "success",
         "last_error": null
-      }
+      },
+      "fields": [
+        {
+          "name": "email",
+          "source_name": "email",
+          "mask": "hash"
+        }
+      ],
+      "dlq_depth": 0
     }
   ],
   "sources": [
