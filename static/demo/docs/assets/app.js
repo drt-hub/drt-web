@@ -92,11 +92,36 @@
     });
   }
 
+  // Single-object bundle router (#821). The whole site is one document of
+  // <section class="page" id="..."> blocks; show the one matching location.hash
+  // (default overview), hide the rest, and highlight its nav link. No-op in the
+  // default multi-file output (no .page sections), so this is safe in both modes.
+  function wireRouter() {
+    var pages = document.querySelectorAll(".main > .page");
+    if (!pages.length) return;
+    function show() {
+      var id = (location.hash || "").replace(/^#/, "") || "overview";
+      var target = document.getElementById(id);
+      if (!target || !target.classList.contains("page")) {
+        id = "overview";
+        target = document.getElementById("overview");
+      }
+      pages.forEach(function (p) { p.classList.toggle("active", p === target); });
+      document.querySelectorAll(".sidebar a, .topnav a").forEach(function (a) {
+        a.classList.toggle("current", a.getAttribute("href") === "#" + id);
+      });
+      window.scrollTo(0, 0);
+    }
+    window.addEventListener("hashchange", show);
+    show();
+  }
+
   document.documentElement.classList.add("js");
   document.addEventListener("DOMContentLoaded", function () {
     restoreGroups();
     wireSearch();
     wireTabs();
     wireCode();
+    wireRouter();
   });
 })();
