@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import {usePluginData} from '@docusaurus/useGlobalData';
+import CodeWindow from '@site/src/components/CodeWindow';
 import Hero from '@site/src/components/Hero';
 import styles from './index.module.css';
 
@@ -86,24 +87,18 @@ export default function Home(): React.ReactElement {
             href: 'https://github.com/drt-hub/drt',
           }}
           aside={
-            <div className={styles.terminal} aria-hidden="true">
-              <div className={styles.termBar}>
-                <i className={styles.dR} /><i className={styles.dY} /><i className={styles.dG} />
-                <span className={styles.termTitle}>~/analytics — drt run</span>
-              </div>
-              <div className={styles.termBody}>
-                <div className={styles.ln}><span className={styles.p}>$</span> drt init</div>
-                <div className={`${styles.ln} ${styles.dim}`}>  created drt_project.yml · syncs/</div>
-                <div className={styles.ln}><span className={styles.p}>$</span> drt run <span className={styles.vio}>active_users_to_slack</span></div>
-                <div className={`${styles.ln} ${styles.dim}`}>  source   <span className={styles.wht}>bigquery</span>   ·  model <span className={styles.wht}>ref('active_users')</span></div>
-                <div className={`${styles.ln} ${styles.dim}`}>  dest     <span className={styles.wht}>slack</span>      ·  mode  <span className={styles.wht}>incremental</span></div>
-                <div className={styles.ln}>  extract  <span className={styles.ok}>2,481 rows</span></div>
-                <div className={styles.ln}>  load     <span className={styles.ok}>✓ 2,481</span> <span className={styles.dim}>· failed 0 · skipped 0</span></div>
-                <div className={`${styles.ln} ${styles.ok}`}>  ✓ sync complete <span className={styles.dim}>in 3.2s</span></div>
-                <div className={styles.ln}>&nbsp;</div>
-                <div className={styles.ln}><span className={styles.p}>$</span> <span className={styles.cursor} /></div>
-              </div>
-            </div>
+            <CodeWindow variant="terminal" title="~/analytics — drt run" aria-hidden>
+              <div className={styles.ln}><span className={styles.p}>$</span> drt init</div>
+              <div className={`${styles.ln} ${styles.dim}`}>  created drt_project.yml · syncs/</div>
+              <div className={styles.ln}><span className={styles.p}>$</span> drt run <span className={styles.vio}>active_users_to_slack</span></div>
+              <div className={`${styles.ln} ${styles.dim}`}>  source   <span className={styles.wht}>bigquery</span>   ·  model <span className={styles.wht}>ref('active_users')</span></div>
+              <div className={`${styles.ln} ${styles.dim}`}>  dest     <span className={styles.wht}>slack</span>      ·  mode  <span className={styles.wht}>incremental</span></div>
+              <div className={styles.ln}>  extract  <span className={styles.ok}>2,481 rows</span></div>
+              <div className={styles.ln}>  load     <span className={styles.ok}>✓ 2,481</span> <span className={styles.dim}>· failed 0 · skipped 0</span></div>
+              <div className={`${styles.ln} ${styles.ok}`}>  ✓ sync complete <span className={styles.dim}>in 3.2s</span></div>
+              <div className={styles.ln}>&nbsp;</div>
+              <div className={styles.ln}><span className={styles.p}>$</span> <span className={styles.cursor} /></div>
+            </CodeWindow>
           }
         >
           <CopyInstall />
@@ -182,9 +177,11 @@ export default function Home(): React.ReactElement {
                   <p><code className={styles.code}>drt run</code> extracts, loads, and reports — or preview first with <code className={styles.code}>--dry-run --diff</code>. Wire it into CI when you're ready.</p>
                 </div>
               </div>
-              <div className={styles.codeCard}>
-                <div className={styles.codeTab}><span className={styles.fname}>syncs/active_users_to_slack.yml</span><span className={styles.badge}>validated</span></div>
-                <pre className={styles.pre}>
+              <CodeWindow
+                variant="file"
+                title="syncs/active_users_to_slack.yml"
+                actions={<span className={styles.badge}>validated</span>}
+              >
 {`name: active_users_to_slack
 `}<span className={styles.k}>model</span>{`: `}<span className={styles.s}>"ref('active_users')"</span>{`   `}<span className={styles.c}># your dbt model</span>{`
 
@@ -197,8 +194,7 @@ export default function Home(): React.ReactElement {
   `}<span className={styles.k}>cursor</span>{`: `}<span className={styles.s}>updated_at</span>{`
   `}<span className={styles.k}>on_error</span>{`: `}<span className={styles.s}>skip</span>{`      `}<span className={styles.c}># skip | fail</span>{`
   `}<span className={styles.k}>batch_size</span>{`: `}<span className={styles.n}>500</span>
-                </pre>
-              </div>
+              </CodeWindow>
             </div>
           </div>
         </section>
