@@ -202,6 +202,20 @@ export default function Home(): React.ReactElement {
           </div>
         </section>
 
+        {/* LIVE DEMO */}
+        <section id="demo" className={styles.section}>
+          <div className={styles.wrap}>
+            <div className={styles.secHead} style={{marginBottom: 0}}>
+              <span className={styles.secEyebrow}>Live demo</span>
+              <h2>The docs drt generates</h2>
+              <p>One <code className={styles.code}>drt docs generate</code> turns a project into a browsable catalog — every sync, source, and destination, with dbt lineage and last-run state. The demo is a real example project, regenerated from drt on every sync.</p>
+            </div>
+            <div className={styles.ctaRow}>
+              <Link className={`${styles.btn} ${styles.btnPrimary}`} to="pathname:///demo/docs/">Open the live demo <Arrow /></Link>
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className={`${styles.section} ${styles.ctaStrip}`}>
           <div className={styles.wrap}>
