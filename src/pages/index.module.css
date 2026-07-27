@@ -31,14 +31,10 @@
 .chipActive small { color: rgba(255, 255, 255, 0.8); }
 .linArrow { color: var(--drt-line-strong); flex: none; }
 
-/* terminal */
-.terminal { background: var(--drt-code-bg); border-radius: var(--drt-radius); border: 1px solid var(--drt-code-line); box-shadow: 0 30px 60px -24px rgba(19, 17, 28, 0.55); overflow: hidden; font-family: var(--ifm-font-family-monospace); font-size: 13px; }
-.termBar { display: flex; align-items: center; gap: 7px; padding: 12px 15px; border-bottom: 1px solid var(--drt-code-line); }
-.termBar i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
-.dR { background: #ff5f57; } .dY { background: #febc2e; } .dG { background: #28c840; }
-.termTitle { margin-left: 10px; color: var(--drt-term-dim); font-size: 12px; }
-.termBody { padding: 18px 18px 22px; line-height: 1.85; color: #d7d2e6; min-height: 318px; }
-.termBody .ln { white-space: pre-wrap; word-break: break-word; }
+/* terminal transcript — the window frame lives in components/CodeWindow.
+   These style the lines and tokens passed in as children, so they must stay
+   here (a `.body .ln` selector could not reach across CSS-module scopes). */
+.ln { white-space: pre-wrap; word-break: break-word; }
 .p { color: var(--drt-violet-bright); }
 .ok { color: var(--drt-term-green); }
 .dim { color: var(--drt-term-dim); }
@@ -89,12 +85,11 @@
 .step h3 { font-family: var(--ifm-heading-font-family); font-weight: 600; font-size: 17px; margin: 0 0 5px; letter-spacing: -0.01em; }
 .step p { font-size: 14.5px; color: var(--drt-ink-soft); margin: 0; }
 
-.codeCard { background: var(--drt-code-bg); border: 1px solid var(--drt-code-line); border-radius: var(--drt-radius); overflow: hidden; box-shadow: 0 24px 50px -26px rgba(19, 17, 28, 0.5); }
-.codeTab { display: flex; align-items: center; gap: 8px; padding: 11px 16px; border-bottom: 1px solid var(--drt-code-line); color: var(--drt-term-dim); font-family: var(--ifm-font-family-monospace); font-size: 12.5px; }
-.codeTab .fname { color: #cfc8e6; }
-.codeTab .badge { margin-left: auto; font-size: 10.5px; color: var(--drt-violet-bright); border: 1px solid var(--drt-code-line); padding: 2px 8px; border-radius: 6px; }
-.pre { margin: 0; padding: 18px; overflow-x: auto; font-family: var(--ifm-font-family-monospace); font-size: 13px; line-height: 1.75; color: #d7d2e6; background: var(--drt-code-bg); }
-.pre .k { color: #b794f6; } .pre .s { color: #7dd3a8; } .pre .c { color: var(--drt-term-dim); } .pre .n { color: #f0b86e; }
+/* snippet content — the window frame lives in components/CodeWindow. The
+   badge rides the `actions` slot and the tokens are children, so both are
+   styled here rather than across a CSS-module boundary. */
+.badge { margin-left: auto; font-size: 10.5px; color: var(--drt-violet-bright); border: 1px solid var(--drt-code-line); padding: 2px 8px; border-radius: 6px; }
+.k { color: #b794f6; } .s { color: #7dd3a8; } .c { color: var(--drt-term-dim); } .n { color: #f0b86e; }
 
 /* cta */
 .ctaStrip { text-align: center; }

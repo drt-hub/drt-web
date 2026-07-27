@@ -1,0 +1,24 @@
+/* ===================== CodeWindow ===================== */
+/* Frame, chrome and body container for the terminal transcript and the code
+   snippet card. Moved verbatim from src/pages/index.module.css — the two
+   variants keep their own shadow/spacing values, which already differed.
+   Token colouring (.k/.s/.p/.ok/…) stays with the content, on the page. */
+
+.window { background: var(--drt-code-bg); border: 1px solid var(--drt-code-line); border-radius: var(--drt-radius); overflow: hidden; }
+.terminal { box-shadow: 0 30px 60px -24px rgba(19, 17, 28, 0.55); font-family: var(--ifm-font-family-monospace); font-size: 13px; }
+.file { box-shadow: 0 24px 50px -26px rgba(19, 17, 28, 0.5); }
+
+/* header */
+.header { display: flex; align-items: center; border-bottom: 1px solid var(--drt-code-line); }
+.headerTerminal { gap: 7px; padding: 12px 15px; }
+.headerFile { gap: 8px; padding: 11px 16px; color: var(--drt-term-dim); font-family: var(--ifm-font-family-monospace); font-size: 12.5px; }
+
+.dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+.dotRed { background: #ff5f57; } .dotYellow { background: #febc2e; } .dotGreen { background: #28c840; }
+
+.titleTerminal { margin-left: 10px; color: var(--drt-term-dim); font-size: 12px; }
+.titleFile { color: #cfc8e6; }
+
+/* body */
+.bodyTerminal { padding: 18px 18px 22px; line-height: 1.85; color: #d7d2e6; min-height: 318px; }
+.bodyFile { margin: 0; padding: 18px; overflow-x: auto; font-family: var(--ifm-font-family-monospace); font-size: 13px; line-height: 1.75; color: #d7d2e6; background: var(--drt-code-bg); }
