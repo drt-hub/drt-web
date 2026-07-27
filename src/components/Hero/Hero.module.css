@@ -1,0 +1,44 @@
+/* ===================== Hero ===================== */
+/* Moved verbatim from src/pages/index.module.css — declarations unchanged. */
+
+.hero { position: relative; padding: 76px 0 34px; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(620px 320px at 88% -8%, rgba(149, 95, 240, 0.16), transparent 70%),
+    radial-gradient(520px 300px at 8% 4%, rgba(124, 58, 237, 0.08), transparent 70%);
+}
+.heroGrid {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 54px; align-items: center;
+}
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--ifm-font-family-monospace); font-size: 12.5px; font-weight: 500;
+  color: var(--drt-accent-ink); background: var(--drt-tint-2);
+  border: 1px solid var(--drt-line-strong); padding: 6px 12px; border-radius: 999px; margin-bottom: 22px;
+}
+.eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--drt-violet); box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.18); }
+.h1 {
+  font-family: var(--ifm-heading-font-family); font-weight: 700;
+  font-size: clamp(38px, 5.2vw, 60px); line-height: 1.04; letter-spacing: -0.035em; margin: 0;
+}
+.sub { margin-top: 22px; font-size: 18px; line-height: 1.62; color: var(--drt-ink-soft); max-width: 30em; }
+
+/* Layout + button primitives shared with the page's own sections. Duplicated
+   rather than imported so the component stands alone on pages that don't load
+   index.module.css; a future Button/layout extraction is the place to dedupe. */
+.wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+.ctaRow { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 30px; }
+.btn { display: inline-flex; align-items: center; gap: 9px; font-weight: 600; font-size: 15px; padding: 13px 22px; border-radius: 11px; transition: transform 0.16s var(--drt-ease), box-shadow 0.16s, background 0.16s; cursor: pointer; text-decoration: none; }
+.btn:hover { text-decoration: none; }
+.btnPrimary { background: linear-gradient(140deg, var(--drt-violet), var(--drt-violet-deep)); color: #fff; box-shadow: 0 10px 26px -10px rgba(124, 58, 237, 0.7); }
+.btnPrimary:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -10px rgba(124, 58, 237, 0.8); color: #fff; }
+.btnGhost { background: var(--drt-paper); color: var(--drt-ink); border: 1px solid var(--drt-line-strong); }
+.btnGhost:hover { border-color: var(--drt-violet); color: var(--drt-violet-deep); transform: translateY(-2px); }
+.btn svg { width: 17px; height: 17px; }
+
+@media (max-width: 900px) {
+  .heroGrid { grid-template-columns: 1fr; gap: 36px; }
+  .hero { padding: 48px 0 18px; }
+}

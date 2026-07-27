@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import {usePluginData} from '@docusaurus/useGlobalData';
+import Hero from '@site/src/components/Hero';
 import styles from './index.module.css';
 
 type Connector = {type: string; name: string};
@@ -70,31 +71,21 @@ export default function Home(): React.ReactElement {
     <Layout title="Reverse ETL for the code-first data stack" description="drt is a code-first reverse ETL CLI. Sync warehouse data into the tools your team uses — defined in YAML, run from the terminal, versioned in Git.">
       <main className={styles.page}>
         {/* HERO */}
-        <section className={styles.hero}>
-          <div className={`${styles.wrap} ${styles.heroGrid}`}>
-            <div>
-              <span className={styles.eyebrow}><span className={styles.dot} />Reverse ETL · code-first</span>
-              <h1 className={styles.h1}>Reverse ETL for the <span className={styles.accent}>code-first</span> data stack</h1>
-              <p className={styles.sub}>Sync modeled warehouse data back into the tools your team actually uses — REST APIs, Slack, Salesforce, and more. Defined in YAML, run from the terminal, versioned in Git.</p>
-              <div className={styles.ctaRow}>
-                <Link className={`${styles.btn} ${styles.btnPrimary}`} to="/#quickstart">Get started <Arrow /></Link>
-                <Link className={`${styles.btn} ${styles.btnGhost}`} to="https://github.com/drt-hub/drt">
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49v-1.7c-2.78.62-3.37-1.22-3.37-1.22-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.12 2.91.85.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05A9.4 9.4 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.81c0 .27.18.6.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" /></svg>
-                  GitHub
-                </Link>
-              </div>
-              <CopyInstall />
-              <div className={styles.lineage}>
-                <span className={styles.linLabel}>pipeline</span>
-                <span className={styles.chip}>dlt<small>load</small></span>
-                <svg className={styles.linArrow} width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h16M12 2l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                <span className={styles.chip}>dbt<small>transform</small></span>
-                <svg className={styles.linArrow} width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h16M12 2l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                <span className={`${styles.chip} ${styles.chipActive}`}>drt<small>activate</small></span>
-              </div>
-            </div>
-
-            {/* terminal */}
+        <Hero
+          eyebrow="Reverse ETL · code-first"
+          title={<>Reverse ETL for the <span className={styles.accent}>code-first</span> data stack</>}
+          subtitle="Sync modeled warehouse data back into the tools your team actually uses — REST APIs, Slack, Salesforce, and more. Defined in YAML, run from the terminal, versioned in Git."
+          primaryCta={{label: <>Get started <Arrow /></>, href: '/#quickstart'}}
+          secondaryCta={{
+            label: (
+              <>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49v-1.7c-2.78.62-3.37-1.22-3.37-1.22-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.57 2.34 1.12 2.91.85.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05A9.4 9.4 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.81c0 .27.18.6.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" /></svg>
+                GitHub
+              </>
+            ),
+            href: 'https://github.com/drt-hub/drt',
+          }}
+          aside={
             <div className={styles.terminal} aria-hidden="true">
               <div className={styles.termBar}>
                 <i className={styles.dR} /><i className={styles.dY} /><i className={styles.dG} />
@@ -113,8 +104,18 @@ export default function Home(): React.ReactElement {
                 <div className={styles.ln}><span className={styles.p}>$</span> <span className={styles.cursor} /></div>
               </div>
             </div>
+          }
+        >
+          <CopyInstall />
+          <div className={styles.lineage}>
+            <span className={styles.linLabel}>pipeline</span>
+            <span className={styles.chip}>dlt<small>load</small></span>
+            <svg className={styles.linArrow} width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h16M12 2l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span className={styles.chip}>dbt<small>transform</small></span>
+            <svg className={styles.linArrow} width="20" height="14" viewBox="0 0 20 14" fill="none"><path d="M1 7h16M12 2l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span className={`${styles.chip} ${styles.chipActive}`}>drt<small>activate</small></span>
           </div>
-        </section>
+        </Hero>
 
         {/* WHY */}
         <section id="why" className={`${styles.section} ${styles.band}`}>

@@ -4,30 +4,9 @@
 .mono { font-family: var(--ifm-font-family-monospace); }
 
 /* ---------- Hero ---------- */
-.hero { position: relative; padding: 76px 0 34px; overflow: hidden; }
-.hero::before {
-  content: ""; position: absolute; inset: 0; z-index: 0;
-  background:
-    radial-gradient(620px 320px at 88% -8%, rgba(149, 95, 240, 0.16), transparent 70%),
-    radial-gradient(520px 300px at 8% 4%, rgba(124, 58, 237, 0.08), transparent 70%);
-}
-.heroGrid {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 54px; align-items: center;
-}
-.eyebrow {
-  display: inline-flex; align-items: center; gap: 9px;
-  font-family: var(--ifm-font-family-monospace); font-size: 12.5px; font-weight: 500;
-  color: var(--drt-accent-ink); background: var(--drt-tint-2);
-  border: 1px solid var(--drt-line-strong); padding: 6px 12px; border-radius: 999px; margin-bottom: 22px;
-}
-.eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--drt-violet); box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.18); }
-.h1 {
-  font-family: var(--ifm-heading-font-family); font-weight: 700;
-  font-size: clamp(38px, 5.2vw, 60px); line-height: 1.04; letter-spacing: -0.035em; margin: 0;
-}
+/* Hero layout/typography lives in src/components/Hero/Hero.module.css.
+   `.accent` stays here because the page composes the hero title. */
 .accent { background: linear-gradient(100deg, var(--drt-violet), var(--drt-violet-bright)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.sub { margin-top: 22px; font-size: 18px; line-height: 1.62; color: var(--drt-ink-soft); max-width: 30em; }
 .ctaRow { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 30px; }
 .btn { display: inline-flex; align-items: center; gap: 9px; font-weight: 600; font-size: 15px; padding: 13px 22px; border-radius: 11px; transition: transform 0.16s var(--drt-ease), box-shadow 0.16s, background 0.16s; cursor: pointer; text-decoration: none; }
 .btn:hover { text-decoration: none; }
@@ -129,8 +108,7 @@
 .ctaCard .btnGhost:hover { border-color: var(--drt-violet-bright); color: #fff; }
 
 @media (max-width: 900px) {
-  .heroGrid, .qsGrid { grid-template-columns: 1fr; gap: 36px; }
+  .qsGrid { grid-template-columns: 1fr; gap: 36px; }
   .features { grid-template-columns: 1fr; }
-  .hero { padding: 48px 0 18px; }
   .section { padding: 60px 0; }
 }
