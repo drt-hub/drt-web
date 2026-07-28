@@ -1,0 +1,11 @@
+/* ===================== FeatureCard ===================== */
+/* Moved verbatim from src/pages/index.module.css — declarations unchanged.
+   `.ic svg` reaches a caller-supplied icon because CSS Modules scope class
+   selectors, not element ones. */
+
+.card { background: var(--drt-paper); border: 1px solid var(--drt-line); border-radius: var(--drt-radius); padding: 26px 24px; transition: transform 0.2s var(--drt-ease), border-color 0.2s, box-shadow 0.2s; }
+.card:hover { transform: translateY(-4px); border-color: var(--drt-line-strong); box-shadow: 0 18px 40px -22px rgba(124, 58, 237, 0.35); }
+.ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: var(--drt-tint-2); color: var(--drt-accent-ink); margin-bottom: 16px; border: 1px solid var(--drt-line-strong); }
+.ic svg { width: 21px; height: 21px; }
+.card h3 { font-family: var(--ifm-heading-font-family); font-weight: 600; font-size: 18px; letter-spacing: -0.01em; margin: 0 0 7px; }
+.card p { font-size: 14.5px; color: var(--drt-ink-soft); line-height: 1.6; margin: 0; }

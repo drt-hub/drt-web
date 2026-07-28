@@ -51,14 +51,10 @@
 .secHead h2 { font-family: var(--ifm-heading-font-family); font-weight: 700; font-size: clamp(28px, 3.6vw, 38px); letter-spacing: -0.03em; line-height: 1.1; margin: 0; }
 .secHead p { margin-top: 14px; font-size: 17px; color: var(--drt-ink-soft); margin-bottom: 0; }
 
-/* feature cards */
+/* feature cards — the card itself lives in components/FeatureCard; this is
+   just the grid the section lays them out in. `.code` stays here too: it
+   also styles the quickstart steps, and it is applied to caller content. */
 .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.card { background: var(--drt-paper); border: 1px solid var(--drt-line); border-radius: var(--drt-radius); padding: 26px 24px; transition: transform 0.2s var(--drt-ease), border-color 0.2s, box-shadow 0.2s; }
-.card:hover { transform: translateY(-4px); border-color: var(--drt-line-strong); box-shadow: 0 18px 40px -22px rgba(124, 58, 237, 0.35); }
-.ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: var(--drt-tint-2); color: var(--drt-accent-ink); margin-bottom: 16px; border: 1px solid var(--drt-line-strong); }
-.ic svg { width: 21px; height: 21px; }
-.card h3 { font-family: var(--ifm-heading-font-family); font-weight: 600; font-size: 18px; letter-spacing: -0.01em; margin: 0 0 7px; }
-.card p { font-size: 14.5px; color: var(--drt-ink-soft); line-height: 1.6; margin: 0; }
 .code { font-family: var(--ifm-font-family-monospace); font-size: 0.88em; color: var(--drt-accent-ink); background: var(--drt-tint-2); padding: 1px 5px; border-radius: 4px; }
 
 /* connectors */

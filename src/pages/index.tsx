@@ -3,6 +3,7 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import {usePluginData} from '@docusaurus/useGlobalData';
 import CodeWindow from '@site/src/components/CodeWindow';
+import FeatureCard from '@site/src/components/FeatureCard';
 import Hero from '@site/src/components/Hero';
 import styles from './index.module.css';
 
@@ -122,11 +123,12 @@ export default function Home(): React.ReactElement {
             </div>
             <div className={styles.features}>
               {FEATURES.map((f) => (
-                <article className={styles.card} key={f.t}>
-                  <div className={styles.ic}><svg viewBox="0 0 24 24" fill="none">{f.i}</svg></div>
-                  <h3>{f.t}</h3>
-                  <p>{f.d}</p>
-                </article>
+                <FeatureCard
+                  key={f.t}
+                  icon={<svg viewBox="0 0 24 24" fill="none">{f.i}</svg>}
+                  title={f.t}
+                  description={f.d}
+                />
               ))}
             </div>
           </div>
