@@ -19,7 +19,7 @@ drt docs generate [OPTIONS]
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `--output`, `-o` | `PATH` | `target\docs` | Output directory. |
+| `--output`, `-o` | `PATH` | `target/docs` | Output directory. |
 | `--format`, `-f` | `TEXT` | `html` | Output format: html \| mermaid \| json. |
 | `--no-state` | `BOOLEAN` |  | Exclude per-sync run state, run history, and DLQ depth from the manifest. |
 | `--full-labels` | `BOOLEAN` |  | Show verbatim connection labels (endpoints, hosts, phone/email) and unredacted error text instead of the default docs-safe output (#696/#698). For trusted/internal hosting only. |

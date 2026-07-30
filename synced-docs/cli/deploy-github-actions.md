@@ -23,6 +23,6 @@ drt deploy github-actions [OPTIONS]
 | `--select` | `TEXT` | `*` | Sync selector passed to drt-action. |
 | `--profile`, `-p` | `TEXT` | `` | Profile name passed to drt-action (empty = project default). |
 | `--extras` | `TEXT` |  | Override the inferred drt-core extras (comma-separated). |
-| `--output`, `-o` | `PATH` | `.github\workflows\drt-sync.yml` | Workflow file path to write. |
+| `--output`, `-o` | `PATH` | `.github/workflows/drt-sync.yml` | Workflow file path to write. |
 | `--dry-run` | `BOOLEAN` |  | Print the workflow instead of writing it. |
 | `--force` | `BOOLEAN` |  | Overwrite an existing workflow file. |
