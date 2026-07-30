@@ -44,6 +44,14 @@ jobs:
             echo "ARTIFACT=_site" >> "$GITHUB_ENV"
           fi
 
+      - name: Typecheck
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          if [ -f package.json ]; then
+            echo "Running tsc typecheck..."
+            npm run typecheck
+          fi
+
       # On pull_request the build above is the check — it proves the site
       # compiles before merge. The Pages upload + deploy run only on main.
       - uses: actions/configure-pages@v5
