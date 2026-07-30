@@ -63,7 +63,6 @@
 .genNote b { color: var(--drt-accent-ink); font-weight: 600; }
 .connGroup + .connGroup { margin-top: 26px; }
 .connGroup h4 { font-family: var(--ifm-font-family-monospace); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--drt-ink-faint); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
-.connGroup h4 .count { color: var(--drt-violet); }
 .connGroup h4::after { content: ""; flex: 1; height: 1px; background: var(--drt-line); }
 /* The connector chip itself lives in components/ConnectorCard; this is just
    the grid the section arranges them in. */
