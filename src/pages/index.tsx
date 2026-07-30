@@ -3,6 +3,7 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import {usePluginData} from '@docusaurus/useGlobalData';
 import CodeWindow from '@site/src/components/CodeWindow';
+import ConnectorCard from '@site/src/components/ConnectorCard';
 import FeatureCard from '@site/src/components/FeatureCard';
 import Hero from '@site/src/components/Hero';
 import styles from './index.module.css';
@@ -55,10 +56,7 @@ function ConnectorGrid({items}: {items: Connector[]}) {
   return (
     <div className={styles.connGrid}>
       {items.map((c) => (
-        <div className={styles.conn} key={c.type}>
-          <span className={styles.swatch} />
-          {c.name}
-        </div>
+        <ConnectorCard key={c.type} name={c.name} />
       ))}
     </div>
   );

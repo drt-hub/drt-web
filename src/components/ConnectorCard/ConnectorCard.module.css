@@ -1,0 +1,8 @@
+/* ===================== ConnectorCard ===================== */
+/* Moved verbatim from src/pages/index.module.css — declarations unchanged.
+   `.connGrid` stays on the page: how a section arranges connectors is not
+   part of what a connector is. */
+
+.card { display: flex; align-items: center; gap: 10px; padding: 11px 13px; background: var(--drt-paper); border: 1px solid var(--drt-line); border-radius: 10px; font-size: 14px; font-weight: 500; transition: border-color 0.15s, transform 0.15s, background 0.15s; }
+.card:hover { border-color: var(--drt-violet); transform: translateY(-2px); background: var(--drt-tint); }
+.swatch { width: 9px; height: 9px; border-radius: 3px; flex: none; background: var(--drt-violet); }
