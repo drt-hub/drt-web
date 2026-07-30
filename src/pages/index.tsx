@@ -5,6 +5,7 @@ import {usePluginData} from '@docusaurus/useGlobalData';
 import CodeWindow from '@site/src/components/CodeWindow';
 import FeatureCard from '@site/src/components/FeatureCard';
 import Hero from '@site/src/components/Hero';
+import StatsGrid from '@site/src/components/StatsGrid';
 import styles from './index.module.css';
 
 type Connector = {type: string; name: string};
@@ -68,6 +69,15 @@ export default function Home(): React.ReactElement {
   const data = usePluginData('drt-ssot-data') as SsotData;
   const destinations = data?.destinations ?? [];
   const sources = data?.sources ?? [];
+  const version = data?.version ?? '';
+
+  // All figures come from the generated SSoT inputs. The version tile is
+  // dropped rather than shown blank when data/version.txt hasn't synced yet.
+  const stats = [
+    {label: 'Destinations', value: destinations.length},
+    {label: 'Sources', value: sources.length},
+    ...(version ? [{label: 'drt version', value: version}] : []),
+  ];
 
   return (
     <Layout title="Reverse ETL for the code-first data stack" description="drt is a code-first reverse ETL CLI. Sync warehouse data into the tools your team uses — defined in YAML, run from the terminal, versioned in Git.">
@@ -144,6 +154,8 @@ export default function Home(): React.ReactElement {
               </div>
               <span className={styles.genNote}>↻ generated from <b>connector manifests</b> — never hand-listed</span>
             </div>
+
+            <StatsGrid items={stats} />
 
             <div className={styles.connGroup}>
               <h4>Destinations <span className={styles.count}>{destinations.length}</span></h4>
