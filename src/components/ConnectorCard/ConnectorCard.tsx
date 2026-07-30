@@ -3,7 +3,7 @@ import styles from './ConnectorCard.module.css';
 
 export type ConnectorCardProps = {
   /** Connector display name, straight from the generated connector manifests. */
-  name: React.ReactNode;
+  name: string;
 };
 
 export default function ConnectorCard({name}: ConnectorCardProps): React.ReactElement {
