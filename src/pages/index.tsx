@@ -158,11 +158,11 @@ export default function Home(): React.ReactElement {
             <StatsGrid items={stats} />
 
             <div className={styles.connGroup}>
-              <h4>Destinations <span className={styles.count}>{destinations.length}</span></h4>
+              <h4>Destinations</h4>
               <ConnectorGrid items={destinations} />
             </div>
             <div className={styles.connGroup}>
-              <h4>Sources <span className={styles.count}>{sources.length}</span></h4>
+              <h4>Sources</h4>
               <ConnectorGrid items={sources} />
             </div>
           </div>
