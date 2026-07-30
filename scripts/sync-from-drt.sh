@@ -27,6 +27,11 @@ mkdir -p synced-docs
 cp -r .drt-src/docs/. synced-docs/
 cp .drt-src/README.md synced-docs/README.md
 
+# CLI reference — one page per command, walked off the installed CLI's command
+# tree, so a new drt command shows up here without touching the generator.
+# Written after the copy above, which recreates synced-docs/ from scratch.
+python scripts/gen-cli-reference.py --output synced-docs/cli
+
 # Live demo — a real `drt docs generate --format html` site, served verbatim
 # from static/demo/docs/ at /demo/docs/. This is the site's own showcase: the
 # lineage catalog a user gets by running one command. Generated from the
