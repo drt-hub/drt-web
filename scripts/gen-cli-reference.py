@@ -22,9 +22,24 @@ import inspect
 import re
 import shutil
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
 
-import click
+# Click is not necessarily importable as a top-level module. Typer >= 0.16
+# vendors it as ``typer._click`` and no longer declares ``click`` as a
+# dependency, so `pip install drt-core[docs]` leaves `import click` failing
+# while the CLI itself works fine. Prefer the real package when something else
+# has pulled it in, and fall back to Typer's copy — the objects are the same
+# classes either way, since Typer builds its command tree out of them.
+try:
+    import click
+except ModuleNotFoundError:  # pragma: no cover - depends on the installed Typer
+    try:
+        from typer import _click as click  # type: ignore[no-redef]
+    except ImportError:
+        sys.exit(
+            "neither 'click' nor 'typer._click' is importable — "
+            "install drt-core[docs] (or click) before running this generator"
+        )
 
 ENTRY_POINT = "drt"
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
@@ -37,7 +52,10 @@ def load_root_command() -> click.Command:
         sys.exit(f"no '{ENTRY_POINT}' console script found — is drt-core installed?")
     obj = eps[0].load()
 
-    if isinstance(obj, click.BaseCommand):
+    # Duck-typed rather than isinstance(obj, click.BaseCommand): that name is
+    # absent from Typer's vendored Click, and `invoke` is what actually
+    # distinguishes a Click command from a Typer app here.
+    if hasattr(obj, "invoke") and hasattr(obj, "params"):
         return obj
     # Typer app: convert to the underlying Click command tree.
     try:
@@ -50,7 +68,9 @@ def load_root_command() -> click.Command:
 def walk(cmd: click.Command, path: tuple[str, ...] = ()) -> list[tuple[tuple[str, ...], click.Command]]:
     """Depth-first list of (command path, command), skipping hidden commands."""
     found = [(path, cmd)]
-    if isinstance(cmd, click.Group):
+    # `commands` is what makes a group a group; click.Group is not exposed
+    # by Typer's vendored Click.
+    if getattr(cmd, "commands", None):
         for name in sorted(cmd.commands):
             sub = cmd.commands[name]
             if getattr(sub, "hidden", False):
@@ -133,14 +153,23 @@ def param_rows(cmd: click.Command, ctx: click.Context) -> tuple[list[str], list[
         except TypeError:
             metavar = p.make_metavar()
 
-        if isinstance(p, click.Argument):
+        # Positional arguments have no dashed opts; click.Argument is not
+        # exposed by Typer's vendored Click.
+        if not any(o.startswith("-") for o in getattr(p, "opts", [])):
             args.append(f"| `{cell(metavar)}` | {'yes' if p.required else 'no'} | {cell(getattr(p, 'help', None))} |")
             continue
 
         flags = ", ".join(f"`{o}`" for o in (*p.opts, *p.secondary_opts))
         default = ""
         if not p.required and p.default is not None and p.default is not False and p.default != ():
-            default = f"`{cell(str(p.default))}`"
+            # `Path` defaults stringify with the *generating* OS's separator, so
+            # a run on Windows publishes `.github\workflows\drt-sync.yml` while
+            # one on Linux publishes the same default with forward slashes. The
+            # CLI accepts forward slashes everywhere and the site is read on all
+            # platforms, so normalise rather than let the runner decide.
+            raw = p.default
+            shown = raw.as_posix() if isinstance(raw, PurePath) else str(raw)
+            default = f"`{cell(shown)}`"
         opts.append(f"| {flags} | `{cell(metavar)}` | {default} | {cell(getattr(p, 'help', None))} |")
     return args, opts
 
@@ -171,7 +200,7 @@ def render(path: tuple[str, ...], cmd: click.Command, position: int) -> str:
     usage = " ".join(cmd.collect_usage_pieces(ctx))
     body += ["## Usage", "", "```bash", f"{full} {usage}".strip(), "```", ""]
 
-    if isinstance(cmd, click.Group):
+    if getattr(cmd, "commands", None):
         rows = []
         for name in sorted(cmd.commands):
             sub = cmd.commands[name]

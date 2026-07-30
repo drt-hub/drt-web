@@ -3,7 +3,21 @@
 # of truth. Run by .github/workflows/sync-from-drt.yml; safe to run locally.
 set -euo pipefail
 
-python -m pip install --quiet --upgrade "drt-core[docs]"
+# `click` and `typer` are pinned rather than left to resolve transitively,
+# because the CLI reference generator's output depends on both.
+#
+# `click`: Typer >= 0.16 vendors Click as `typer._click` and no longer declares
+# the real package as a dependency, so `drt-core[docs]` alone leaves
+# `import click` failing outright — that is what broke run 30555942117.
+#
+# `typer`: drt asks only for `typer>=0.12`, and the rendering of parameter
+# metavars changed between 0.24 and 0.27 (`SYNC_NAME` / `INTEGER` became
+# `{sync_name}` / `<int>`). Unpinned, a sync run would silently rewrite 21 of
+# the 34 generated pages with no drt-side change behind it, and the diff would
+# look like a real docs update. The pin keeps the pages a function of drt
+# rather than of whichever Typer the runner happened to resolve; bump it
+# deliberately when the rendering change is wanted.
+python -m pip install --quiet --upgrade "drt-core[docs]" "click>=8.3,<9" "typer>=0.24,<0.25"
 
 mkdir -p data
 
