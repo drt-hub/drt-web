@@ -1,0 +1,99 @@
+name: Check generated docs
+
+# Regenerates the committed CLI reference and fails if anything moves. The pins
+# added in #44 stop silent drift; this detects it. Two cases are currently
+# invisible: someone hand-edits a generated page, or a renderer bump changes the
+# output — both land as ordinary-looking Markdown in a diff nobody reads closely.
+#
+# Runs on pull_request only. The sync workflow is *supposed* to produce a diff,
+# so it is not checked here; see the note on the diff step below for why sync
+# PRs are unaffected either way.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cli-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # drt-core is pinned to the version recorded alongside the pages, not to
+      # the latest release. The committed reference and data/version.txt are
+      # written by the same sync run, so this asks the precise question: do the
+      # committed pages match what *this* release plus *these* renderers
+      # produce? Left floating, every open PR would start failing the moment drt
+      # published a release — a false alarm that belongs to the sync workflow,
+      # and the fastest way to get a check like this switched off.
+      #
+      # The renderer pins are read from the same file scripts/sync-from-drt.sh
+      # installs, so the check can never verify against a different Typer than
+      # the one that generated the pages.
+      - name: Install the pinned generator toolchain
+        run: |
+          version="$(tr -d '[:space:]' < data/version.txt)"
+          if [ -z "$version" ]; then
+            echo "::error file=data/version.txt::data/version.txt is empty — cannot pin drt-core for the drift check."
+            exit 1
+          fi
+          echo "Pinning drt-core==${version} (from data/version.txt)"
+          python -m pip install --quiet --upgrade \
+            "drt-core[docs]==${version}" \
+            -r scripts/requirements-cli-docs.txt
+
+      # The generator, unchanged and reused as-is — no logic is duplicated here.
+      # Only the CLI reference is regenerated: scripts/sync-from-drt.sh also
+      # re-clones drt into synced-docs/, which would diff against upstream's
+      # latest docs and fail on every PR.
+      - name: Regenerate the CLI reference
+        run: python scripts/gen-cli-reference.py --output synced-docs/cli
+
+      # `git add -N` records new pages as intent-to-add so `git diff` sees them.
+      # Without it a brand-new drt command writes an untracked file that
+      # --exit-code silently ignores, and the drift is missed.
+      #
+      # On a sync PR this passes rather than fails: the pages there were just
+      # regenerated with these same pins, and #44 verified the generator is
+      # idempotent. (In practice sync PRs are opened with GITHUB_TOKEN, which
+      # cannot trigger workflows, so this job does not run on them at all.)
+      - name: Fail if the committed pages are stale
+        run: |
+          git add --intent-to-add -- synced-docs/cli
+          if git diff --exit-code -- synced-docs/cli; then
+            echo "CLI reference is up to date with drt-core $(tr -d '[:space:]' < data/version.txt)."
+            exit 0
+          fi
+
+          echo
+          echo "::error::Generated CLI reference is stale — synced-docs/cli does not match what scripts/gen-cli-reference.py produces."
+          cat <<'EOF'
+
+          The pages above are generated and must not be edited by hand.
+          A diff here means one of:
+
+            * a generated page was edited directly — revert it and change drt instead;
+            * scripts/gen-cli-reference.py changed how pages are rendered;
+            * a pin in scripts/requirements-cli-docs.txt was bumped, so the
+              renderer now emits different Markdown;
+            * data/version.txt was changed without regenerating the reference.
+
+          To fix, from the repo root:
+
+            python -m pip install --upgrade \
+              "drt-core[docs]==$(tr -d '[:space:]' < data/version.txt)" \
+              -r scripts/requirements-cli-docs.txt
+            python scripts/gen-cli-reference.py --output synced-docs/cli
+            git add synced-docs/cli
+
+          Then commit the regenerated pages with the change that caused them.
+          EOF
+          exit 1
