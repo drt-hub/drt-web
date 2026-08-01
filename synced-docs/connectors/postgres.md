@@ -222,6 +222,68 @@ This resolves the list→JSONB-vs-ARRAY ambiguity with **no configuration**. Int
 json_columns: [profile, preferences]
 ```
 
+## As a source — retry on transient extract failures ([#766](https://github.com/drt-hub/drt/issues/766))
+
+When Postgres is the **source** of a sync, opening the connection and running the model query
+are retried automatically (3 attempts, exponential backoff from 1s, capped at 60s). No
+configuration — it is always on, and separate from the `sync.retry` knobs that govern the load
+side.
+
+**Retried** (psycopg2):
+
+- `OperationalError` — connection refused, `server closed the connection unexpectedly`,
+  `terminating connection due to administrator command` (failover, restart, idle-timeout reaper).
+- `InterfaceError` — the driver's own connection object went bad.
+
+**Not retried:** `ProgrammingError` (bad SQL, missing relation, denied privilege), `DataError`,
+`IntegrityError`. psycopg2 makes all of these *siblings* of `OperationalError` under
+`DatabaseError` (PEP 249's hierarchy), so drt matches the two specific classes rather than the
+base — testing the base would happily retry a typo in your SQL three times.
+
+**Authentication failures are never retried**, even though psycopg2 files them *under*
+`OperationalError` (`InvalidPassword`, `InvalidAuthorizationSpecification`, SQLSTATE class `28`).
+Three rapid attempts with a wrong credential can trip an account-lockout policy — turning a
+config typo into an outage.
+
+⚠️ **Scope: connection + query execution + fetching the result set only.** A failure *after the
+first row has been yielded* is not retried and fails the sync: the engine has already handed
+those rows to the destination, and loaded rows cannot be un-sent. Re-running would duplicate
+them; skipping them would need a stable ordering and offset the query doesn't promise. That is a
+checkpointing problem, not a retry problem. See
+[API_REFERENCE](../llm/API_REFERENCE.md#source-side-retry-766).
+
+## As a source — streaming extraction ([#765](https://github.com/drt-hub/drt/issues/765))
+
+Rows are read through a **server-side (named) cursor** in batches rather than buffered whole with
+`fetchall()`, so peak memory tracks the batch instead of the result set — an order of magnitude
+lower on a 300k-row extract. Measured figures for every source are collected in
+[Extraction memory](../research/extraction-memory.md).
+
+```yaml
+# ~/.drt/profiles.yml
+pg:
+  type: postgres
+  host: localhost
+  dbname: analytics
+  user: analyst
+  password_env: PG_PASSWORD
+  fetch_size: 10000        # rows per server round trip (default: 10000)
+```
+
+`fetch_size` trades round trips against memory. Memory scales with `fetch_size x row width`, not
+with the number of rows, so **lower it for very wide rows** (large `JSONB`, long text) rather than
+for big tables — a 300M-row table costs the same as a 300k-row one at the same width. Raising it
+buys progressively less.
+
+There is deliberately no setting that restores the old buffer-everything behaviour: holding the
+whole result set client-side is the problem this removes.
+
+⚠️ **The connection is now held open for the whole load**, not just the extract — the cursor lives
+on the server and dies with its session. Two consequences worth knowing: a sync is more exposed to
+an idle-session reaper or a failover mid-load (that failure is *not* retried, per the scope note
+above), and long-running syncs hold a Postgres backend for their duration. If your server enforces
+a short `idle_in_transaction_session_timeout`, a slow destination can now trip it.
+
 ## Notes
 
 - Requires `pip install drt-core[postgres]` (uses `psycopg2`)

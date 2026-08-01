@@ -178,6 +178,62 @@ INSERT INTO db.schema.t (id, payload) SELECT %s, PARSE_JSON(%s)
 
 so a `dict`/`list` lands as proper semi-structured data instead of a stringified `repr` — with **no configuration**. When no column needs wrapping, the INSERT is the unchanged `VALUES (...)` form. Introspection is best-effort: if `information_schema` isn't readable for the role, drt falls back to binding values directly. Disable with `introspect_schema: false`.
 
+## As a source — retry on transient extract failures ([#766](https://github.com/drt-hub/drt/issues/766))
+
+When Snowflake is the **source** of a sync, opening the connection and running the model query
+are retried automatically (3 attempts, exponential backoff from 1s, capped at 60s). No
+configuration — it is always on, and separate from the `sync.retry` knobs that govern the load
+side.
+
+**Retried:**
+
+- `OperationalError` — the connector's own class for network and service-availability trouble,
+  including `RevocationCheckError` (a CRL/OCSP endpoint being unreachable) which is its subclass.
+- `DatabaseError` carrying errno **`390114`** — `Authentication token has expired`. **Observed
+  during the [#654](https://github.com/drt-hub/drt/issues/654) real-warehouse smoke programme**:
+  a long extract outstays its session token, and re-connecting is precisely the fix. Before
+  #766 this failed the entire sync.
+
+**Not retried:** `ProgrammingError` — SQL compilation errors, a missing table, insufficient
+privileges.
+
+Note the `390114` check is gated on the **exact** `DatabaseError` class, not an `isinstance`
+against it: `ProgrammingError` is also a `DatabaseError` subclass in this driver, so a base-class
+check would retry every SQL typo. This is exactly why drt classifies with a predicate rather
+than a tuple of exception types — `390114` and a permanent error can be the very same class.
+
+⚠️ **Scope: connection + query execution + fetching the result set only.** An expired token or an
+unavailable warehouse *on the way in* is retried. A failure *after the first row has been
+yielded* is not retried and fails the sync — those rows are already loaded into the destination
+and cannot be un-sent. See [API_REFERENCE](../llm/API_REFERENCE.md#source-side-retry-766).
+
+## As a source — streaming extraction ([#765](https://github.com/drt-hub/drt/issues/765))
+
+Rows are read by iterating the cursor in `fetch_size` batches rather than buffered whole with
+`fetchall()`, so peak memory tracks the batch instead of the result set.
+
+```yaml
+# ~/.drt/profiles.yml
+sf:
+  type: snowflake
+  account: xy12345.us-east-1
+  user: analyst
+  private_key_env: SNOWFLAKE_PRIVATE_KEY
+  database: ANALYTICS
+  schema: PUBLIC
+  warehouse: COMPUTE_WH
+  fetch_size: 10000        # rows per round trip (default: 10000)
+```
+
+Memory scales with `fetch_size x row width`, not with the number of rows — lower it for very wide
+rows (large VARIANT/OBJECT columns), not for big tables.
+
+⚠️ **The connection is held open for the whole load**, not just the extract: the result set lives
+server-side until consumed. A slow destination therefore keeps a Snowflake session — and its
+warehouse — busy for the duration, which is worth knowing if you are billing on warehouse uptime.
+Per [#766](https://github.com/drt-hub/drt/issues/766) a failure after the first row has been
+yielded is not retried.
+
 ## Notes
 
 - Requires `pip install drt-core[snowflake]` (uses `snowflake-connector-python`)

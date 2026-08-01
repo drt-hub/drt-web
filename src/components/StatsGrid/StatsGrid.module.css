@@ -1,0 +1,9 @@
+/* ===================== StatsGrid ===================== */
+/* New UI — there was no stats block to extract. Built from existing tokens:
+   the chip frame matches .conn, the caption matches .connGroup h4, and the
+   figure takes the violet already used for the inline counts. */
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0 0 26px; }
+.stat { display: flex; flex-direction: column-reverse; gap: 4px; padding: 14px 16px; background: var(--drt-paper); border: 1px solid var(--drt-line); border-radius: 10px; }
+.value { margin: 0; font-family: var(--ifm-heading-font-family); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; color: var(--drt-violet); }
+.label { margin: 0; font-family: var(--ifm-font-family-monospace); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--drt-ink-faint); }

@@ -65,7 +65,32 @@ const config = {
 
   i18n: {defaultLocale: 'en', locales: ['en']},
 
-  plugins: [drtSsotPlugin],
+  // `.md` is parsed as CommonMark, `.mdx` as MDX. The generated CLI pages carry
+  // CLI help verbatim — `mcp run` embeds a JSON snippet whose braces MDX would
+  // read as expressions — so they must not go through the MDX parser.
+  markdown: {format: 'detect'},
+
+  plugins: [
+    drtSsotPlugin,
+    // CLI reference — generated into synced-docs/cli/ by the sync workflow.
+    // A scoped docs instance rather than the classic preset's `docs`, which
+    // stays false until the rest of synced-docs/ is wired up separately.
+    // Skipped when the directory is absent so a fresh checkout still builds.
+    ...(fs.existsSync(path.join(__dirname, 'synced-docs/cli'))
+      ? [
+          [
+            '@docusaurus/plugin-content-docs',
+            {
+              id: 'cli',
+              path: 'synced-docs/cli',
+              routeBasePath: 'cli',
+              sidebarPath: './sidebars-cli.js',
+              editUrl: undefined,
+            },
+          ],
+        ]
+      : []),
+  ],
 
   stylesheets: [
     'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap',

@@ -201,8 +201,12 @@ sync:                       # optional: all fields have defaults
   dlq:                      # optional (#278): Dead Letter Queue — persist per-record load failures for replay
     enabled: false          # default: false (opt-in) — writes FULL records to .drt/dlq/<sync>.jsonl (a PII decision)
     max_records: 10000      # default: 10000 — cap queue size; oldest entries dropped past this (0 = unbounded)
-  rate_limit:
-    requests_per_second: 10 # default: 10 — set to 0 to disable rate limiting
+  rate_limit:               # sync-level pacing (applied unless destination overrides)
+    requests_per_second: 10 # default: 10 — set to 0 to disable rate limiting; float allowed (2.5 = one request per 0.4s)
+    burst: null             # optional (#769): default null = strict minimum interval between requests.
+                            # An integer >= 1 lets idle time accumulate up to N requests' worth of
+                            # credit, spendable back-to-back — smooths bursty batches without
+                            # raising the sustained rate. null is byte-identical to pre-#769 behaviour.
   retry:                    # sync-level retry (applied unless destination overrides)
     max_attempts: 3         # default: 3
     initial_backoff: 1.0    # default: 1.0 seconds
@@ -222,6 +226,27 @@ sync:                       # optional: all fields have defaults
 #   type: notion
 #   retry:
 #     max_attempts: 7       # only this destination retries 7 times
+
+# Per-destination rate limit override (#769): set `rate_limit:` inside any HTTP
+# destination block to override `sync.rate_limit` for that destination only.
+# Priority order: destination.rate_limit > sync.rate_limit > RateLimitConfig defaults.
+# destination:
+#   type: hubspot
+#   rate_limit:
+#     requests_per_second: 4  # only this destination is paced at 4/s
+#     burst: 8
+#
+# Limiters are SHARED PER ENDPOINT across a whole `drt run`, so `--threads 4`
+# against one HubSpot portal now paces 4 concurrent syncs through ONE bucket
+# instead of four independent ones (which previously allowed 4x the intended
+# rate). The endpoint identity is the real quota holder — the HubSpot portal
+# (token, NOT object_type), the Slack webhook, the Zendesk subdomain, the
+# Airtable base (not table), the REST API host. When two syncs sharing an
+# endpoint ask for different rates, the LOWEST rate wins for all of them.
+#
+# Connectors with a known vendor ceiling clamp to it even if you configure
+# higher: HubSpot 9/s, Zendesk 11/s, GitHub Actions 5/s, Notion 3/s.
+# Configuring a LOWER rate than the ceiling is always honoured.
 
 tests:                      # optional: post-sync validation (DB destinations only)
   - row_count:
@@ -269,6 +294,140 @@ debugging **snapshot of the current run** — each run overwrites the file, and 
 passes has its stale sample removed). **`sync.mask` (#427) is applied before anything is
 written** — masked columns are masked in the failure file, never the raw value. `row_count` has
 no per-row failure concept, so nothing is written for it. Off by default.
+
+---
+
+## Source-side retry (#766)
+
+The `sync.retry` / `destination.retry` knobs above apply to the **load** side. Since #766 the
+**extract** side retries too: a transient warehouse hiccup while opening the connection or
+running the query no longer fails the whole sync. This needs no configuration — it is always on,
+using the `RetryConfig` defaults (3 attempts, 1.0s initial backoff, ×2 multiplier, 60s cap).
+
+### Scope boundary — read this before relying on it
+
+**Retries cover establishing the connection, executing the query, and fetching the result set.
+A failure after the first row has been yielded is *not* retried, and propagates.**
+
+Every source's `extract()` is a generator. Before the first row is emitted, nothing has left the
+source, so re-running the query is safe and produces the same result set. Once rows have been
+yielded, the engine has already handed them to the destination — and **loaded rows cannot be
+un-sent**. Re-running the query would re-emit them (duplicates); skipping them would require a
+stable ordering and offset the query does not promise. That is a checkpointing problem, not a
+retry problem, and it is deliberately out of scope here.
+
+So: "drt retries the source" does **not** mean every extract failure is covered. A connection
+dropped 40,000 rows into a 100,000-row read still fails the sync.
+
+### What counts as transient
+
+Each source classifies its own driver's exceptions — a predicate, not a list of exception types,
+because transient-ness often depends on an attribute rather than the class (Snowflake's `390114`
+and a permanent error can be the very same class).
+
+| Source | Retried | Not retried |
+|---|---|---|
+| `postgres` | psycopg2 `OperationalError` (connection refused, server closed the connection, failover/restart), `InterfaceError` | `ProgrammingError`, `DataError`, `IntegrityError`, **auth failures** |
+| `redshift` | Same psycopg2 classification (cluster failover, a paused serverless workgroup resuming, WLM dropping an idle session) | Same as Postgres, incl. **auth failures** |
+| `mysql` | pymysql `InterfaceError`; `OperationalError` **only** with client errnos 2002 / 2003 / 2006 / 2013 / 2055 (connection lost, server gone away) | Everything else, incl. errno 1045 access denied and 1049 unknown database |
+| `snowflake` | `OperationalError` (network / service availability, incl. `RevocationCheckError`); `DatabaseError` with errno **390114** (`Authentication token has expired`) | `ProgrammingError` (SQL compilation, missing table, insufficient privileges) |
+| `databricks` | `databricks.sql.exc.OperationalError`; `RequestError` — the **SQL warehouse cold start**, where a stopped warehouse takes minutes to resume and the first requests fail while it does | `ProgrammingError`, `DatabaseError`, `NotSupportedError` |
+| `sqlserver` | pymssql `OperationalError` (connection refused, server restarting, Azure SQL failover), `InterfaceError` | `ProgrammingError`, `DataError`, `IntegrityError`, `NotSupportedError` |
+| `clickhouse` | clickhouse-connect `OperationalError` (unexpected disconnect), `InterfaceError`; plus raw `httpx.TransportError` / retryable statuses via the HTTP interface | `ProgrammingError` (incl. `StreamClosedError`), `DataError`, `IntegrityError` |
+| `rest_api` | `retryable_status_codes` (429/500/502/503/504) and transport errors, per page request; `Retry-After` honoured (#769) | 4xx — it won't succeed on repeat, and retrying burns API quota |
+
+Snowflake's `390114` and the Databricks cold start are not hypothetical: both were observed
+during the [#654](https://github.com/drt-hub/drt/issues/654) real-warehouse smoke programme.
+
+**Authentication failures are never retried** on Postgres / Redshift / MySQL, even though those
+drivers file them under an otherwise-retryable class (psycopg2 puts `InvalidPassword` under
+`OperationalError`; pymysql puts errno 1045 there). Three rapid attempts with a bad credential
+can trip an account-lockout policy — turning a config typo into an outage.
+
+### Sources deliberately excluded
+
+- **DuckDB / SQLite** — local files. "Transient" isn't a meaningful category; retrying a locked
+  file just delays the error.
+- **BigQuery** — `google-cloud-bigquery` already retries internally. A second layer would
+  multiply the backoff and make the effective timeout far longer than either layer intends.
+- **Delta Lake / Iceberg** — covered by [#679](https://github.com/drt-hub/drt/issues/679).
+
+### No config knob (yet)
+
+`extract()` receives a `ProfileConfig`, not `SyncOptions`, so `sync.retry` is not reachable from
+inside a source. The defaults ship the resilience; a per-profile `retry:` field is a deliberate
+follow-up rather than part of #766.
+
+---
+
+## Streaming extraction (#765)
+
+SQL sources read through a **server-side cursor** in `fetch_size` batches rather than materialising
+the result set with `fetchall()`. Peak memory tracks the batch, not the table.
+
+```yaml
+# ~/.drt/profiles.yml
+pg:
+  type: postgres
+  # ...
+  fetch_size: 10000     # rows per server round trip (default: 10000)
+```
+
+| Source | Mechanism | `fetch_size` |
+|---|---|---|
+| Postgres | named cursor, `itersize` | yes |
+| Redshift | named cursor, `itersize` | yes |
+
+Peak memory tracks the batch rather than the result set — an order of magnitude lower on a 300k-row
+extract. Measured figures for every source: [Extraction memory](../research/extraction-memory.md).
+
+**Sizing.** Memory scales with `fetch_size x row width`, not row count — lower it for very wide
+rows, not for big tables. There is deliberately no value that restores the old behaviour: buffering
+the whole result set client-side is what this removes.
+
+### Lifecycle — the part that matters when adding a source
+
+A server-side cursor is only valid while its connection is open, which breaks the #766 pattern of
+closing the connection inside the retried unit. The shape every streaming source follows:
+
+```python
+def _connect_and_execute():        # retried: connect + execute only
+    conn = self._connect(config)
+    try:
+        cur = conn.cursor(name="drt_extract")   # named => server-side
+        cur.itersize = config.fetch_size
+        cur.execute(query)
+        return conn, cur
+    except BaseException:
+        conn.close()               # a failed attempt cleans up after itself
+        raise
+
+conn, cur = with_retry(_connect_and_execute, RetryConfig(), retry_on=self._is_transient)
+try:
+    columns = []
+    for row in cur:
+        if not columns:            # description is None until the first batch
+            columns = [d[0] for d in cur.description]
+        yield dict(zip(columns, row))
+finally:
+    conn.close()                   # also runs on GeneratorExit
+```
+
+Three traps, each of which is invisible to a mocked test and only shows up against a real server:
+
+1. **`cur.description` is `None` until the first batch arrives.** `DECLARE` does not touch the
+   server, so there is no column metadata after `execute()` — unlike a plain cursor. Reading it up
+   front raises `TypeError: 'NoneType' object is not iterable`.
+2. **An abandoned generator leaks.** `--limit` / `--fail-fast` stop consuming mid-stream; without
+   the `finally`, the server-side cursor stays open (confirmed in `pg_cursors`). `GeneratorExit`
+   is what makes the `finally` fire.
+3. **Session-scoped setup needs a plain cursor.** `DECLARE <name> CURSOR FOR SET ...` is a syntax
+   error, so Redshift's `SET search_path` runs on a separate plain cursor — still effective,
+   because it is session state.
+
+⚠️ **The connection is held for the whole load**, not just the extract. A sync is therefore more
+exposed to idle-session reapers and failovers mid-load, and per #766 those failures are *not*
+retried once a row has been yielded.
 
 ---
 
