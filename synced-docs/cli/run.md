@@ -51,5 +51,6 @@ drt run [OPTIONS]
 | `--profile`, `-p` | `TEXT` |  | Override profile (default: drt_project.yml or DRT_PROFILE). |
 | `--log-format` | `[text\|json]` | `LogFormat.TEXT` | Log format: 'text' (default) or 'json' (structured JSON Lines, separate from --output json). |
 | `--cursor-value` | `TEXT` |  | Override cursor/watermark value for incremental syncs (backfill/recovery). |
+| `--full-refresh` | `BOOLEAN` |  | Clear the stored watermark first, so this run re-reads everything and then persists a fresh watermark. Does NOT reset tracked-mirror state — use `drt state reset --tracked-mirror` for that. |
 | `--diff` | `BOOLEAN` |  | When combined with --dry-run, show record-level diff (added/updated/deleted) for queryable destinations or a sample of records to send for non-queryable destinations. |
 | `--diff-limit` | `INTEGER` | `20` | Maximum number of records to show per diff category (default 20). |

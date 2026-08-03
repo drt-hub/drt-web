@@ -35,6 +35,7 @@ drt [OPTIONS] COMMAND [ARGS]...
 | [`run`](run.md) | Run sync(s) defined in the project. |
 | [`serve`](serve.md) | Start an HTTP endpoint that triggers drt syncs on demand. |
 | [`sources`](sources.md) | List available source connectors. |
+| [`state`](state.md) | Inspect and reset drt's durable state (watermarks, run state, mirror keys). |
 | [`status`](status.md) | Show the status of the most recent sync runs. |
 | [`test`](test.md) | Run post-sync validation tests. |
 | [`validate`](validate.md) | Validate sync definitions against the JSON Schema. |
