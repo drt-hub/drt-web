@@ -5,27 +5,51 @@ name: Check generated docs
 # invisible: someone hand-edits a generated page, or a renderer bump changes the
 # output — both land as ordinary-looking Markdown in a diff nobody reads closely.
 #
-# Runs on pull_request only. The sync workflow is *supposed* to produce a diff,
-# so it is not checked here; see the note on the diff step below for why sync
-# PRs are unaffected either way.
+# Scope: only synced-docs/cli. The rest of synced-docs/ is copied verbatim from
+# drt by scripts/sync-from-drt.sh and cannot be re-derived without a live clone,
+# so a hand-edit there is still invisible to CI. Worth revisiting when the rest
+# of synced-docs/ is wired into Docusaurus.
+#
+# Runs on pull_request *and* on push to main. Sync PRs are opened with
+# GITHUB_TOKEN, which cannot trigger workflows, so the one branch that actually
+# rewrites these pages would otherwise never be checked — and the drift would
+# first surface on an unrelated contributor's PR, blaming them for it. The push
+# trigger reports it against the commit that introduced it instead.
+# scripts/sync-from-drt.yml also re-runs the generator inline to catch a
+# non-idempotent sync before the PR is even opened.
 
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Superseded runs are pure waste: each one reinstalls the whole drt-core tree.
+concurrency:
+  group: check-generated-docs-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   cli-reference:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # The output path is also hardcoded in scripts/sync-from-drt.sh and
+      # registered in docusaurus.config.js — keep all three in step. Declared
+      # once here so the two steps below cannot drift apart from each other.
+      CLI_DOCS_DIR: synced-docs/cli
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements-cli-docs.txt
 
       # drt-core is pinned to the version recorded alongside the pages, not to
       # the latest release. The committed reference and data/version.txt are
@@ -35,11 +59,15 @@ jobs:
       # published a release — a false alarm that belongs to the sync workflow,
       # and the fastest way to get a check like this switched off.
       #
-      # The renderer pins are read from the same file scripts/sync-from-drt.sh
-      # installs, so the check can never verify against a different Typer than
-      # the one that generated the pages.
+      # The renderer versions come from the same file scripts/sync-from-drt.sh
+      # installs, and are exact `==` pins, so the check cannot resolve a
+      # different Typer than the one that generated the pages.
       - name: Install the pinned generator toolchain
         run: |
+          if [ ! -f data/version.txt ]; then
+            echo "::error file=data/version.txt::data/version.txt is missing — cannot pin drt-core for the drift check."
+            exit 1
+          fi
           version="$(tr -d '[:space:]' < data/version.txt)"
           if [ -z "$version" ]; then
             echo "::error file=data/version.txt::data/version.txt is empty — cannot pin drt-core for the drift check."
@@ -50,31 +78,52 @@ jobs:
             "drt-core[docs]==${version}" \
             -r scripts/requirements-cli-docs.txt
 
-      # The generator, unchanged and reused as-is — no logic is duplicated here.
-      # Only the CLI reference is regenerated: scripts/sync-from-drt.sh also
-      # re-clones drt into synced-docs/, which would diff against upstream's
-      # latest docs and fail on every PR.
-      - name: Regenerate the CLI reference
-        run: python scripts/gen-cli-reference.py --output synced-docs/cli
+      # Recorded explicitly: --quiet swallows pip's resolution summary, and
+      # "which renderer produced these pages" is the first question asked when
+      # this check fails unexpectedly.
+      - name: Record the resolved toolchain
+        run: python -m pip freeze | grep -E '^(drt-core|click|typer)=='
 
-      # `git add -N` records new pages as intent-to-add so `git diff` sees them.
-      # Without it a brand-new drt command writes an untracked file that
-      # --exit-code silently ignores, and the drift is missed.
+      # The generator, unchanged and reused as-is — no rendering logic is
+      # duplicated here. Only the CLI reference is regenerated:
+      # scripts/sync-from-drt.sh also re-clones drt into synced-docs/, which
+      # would diff against upstream's latest docs and fail on every PR.
+      - name: Regenerate the CLI reference
+        run: python scripts/gen-cli-reference.py --output "$CLI_DOCS_DIR"
+
+      # Two things this diff has to get right, both verified against git 2.47:
       #
-      # On a sync PR this passes rather than fails: the pages there were just
-      # regenerated with these same pins, and #44 verified the generator is
-      # idempotent. (In practice sync PRs are opened with GITHUB_TOKEN, which
-      # cannot trigger workflows, so this job does not run on them at all.)
+      # `git add -N` records new pages as intent-to-add, so a brand-new drt
+      # command is seen at all — without it `git diff` ignores the untracked
+      # file and the drift is missed.
+      #
+      # The diff is taken against HEAD, not the index. `git add -N` *stages*
+      # deletions, so a worktree-vs-index diff reports nothing when a command is
+      # removed upstream and its page disappears — the check would print "up to
+      # date" while a stale page stayed committed. Against HEAD, additions,
+      # modifications and deletions are all caught.
       - name: Fail if the committed pages are stale
         run: |
-          git add --intent-to-add -- synced-docs/cli
-          if git diff --exit-code -- synced-docs/cli; then
+          git add --intent-to-add -- "$CLI_DOCS_DIR"
+
+          # Distinguish "differences found" (1) from "git itself failed" (128),
+          # which would otherwise be reported as a hand-edited page.
+          set +e
+          git diff --exit-code HEAD -- "$CLI_DOCS_DIR"
+          rc=$?
+          set -e
+
+          if [ "$rc" -eq 0 ]; then
             echo "CLI reference is up to date with drt-core $(tr -d '[:space:]' < data/version.txt)."
             exit 0
           fi
+          if [ "$rc" -ne 1 ]; then
+            echo "::error::git diff failed with status ${rc} — this is a tooling failure, not documentation drift."
+            exit "$rc"
+          fi
 
           echo
-          echo "::error::Generated CLI reference is stale — synced-docs/cli does not match what scripts/gen-cli-reference.py produces."
+          echo "::error::Generated CLI reference is stale — ${CLI_DOCS_DIR} does not match what scripts/gen-cli-reference.py produces."
           cat <<'EOF'
 
           The pages above are generated and must not be edited by hand.
@@ -84,15 +133,25 @@ jobs:
             * scripts/gen-cli-reference.py changed how pages are rendered;
             * a pin in scripts/requirements-cli-docs.txt was bumped, so the
               renderer now emits different Markdown;
-            * data/version.txt was changed without regenerating the reference.
+            * data/version.txt was changed without regenerating the reference;
+            * the pins resolved to a different renderer than the sync run used —
+              compare the "Record the resolved toolchain" step above against the
+              sync run that last wrote these pages.
 
-          To fix, from the repo root:
+          To fix, from the repo root. Use a throwaway virtualenv: the pinned
+          install would otherwise replace whatever drt-core is in your current
+          environment, including an editable checkout.
 
+            python3.12 -m venv /tmp/drt-docs && . /tmp/drt-docs/bin/activate
             python -m pip install --upgrade \
               "drt-core[docs]==$(tr -d '[:space:]' < data/version.txt)" \
               -r scripts/requirements-cli-docs.txt
             python scripts/gen-cli-reference.py --output synced-docs/cli
             git add synced-docs/cli
+
+          The generator deletes its output directory before rewriting it, so if
+          it fails partway you are left with an incomplete synced-docs/cli.
+          `git checkout -- synced-docs/cli` restores it.
 
           Then commit the regenerated pages with the change that caused them.
           EOF

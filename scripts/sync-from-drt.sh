@@ -38,6 +38,17 @@ cp .drt-src/README.md synced-docs/README.md
 # CLI reference — one page per command, walked off the installed CLI's command
 # tree, so a new drt command shows up here without touching the generator.
 # Written after the copy above, which recreates synced-docs/ from scratch.
+#
+# The generator deletes its output directory before rewriting it, so if drt ever
+# ships a docs/cli/ of its own the copy above would land there and be silently
+# destroyed — and the drift check would then certify the loss as correct. Fail
+# loudly instead; the two would need to be given separate homes.
+if [ -e synced-docs/cli ]; then
+  echo "error: drt's docs/ now contains a cli/ directory, which collides with" >&2
+  echo "       the generated CLI reference. Give one of them a different path" >&2
+  echo "       before syncing — see scripts/gen-cli-reference.py." >&2
+  exit 1
+fi
 python scripts/gen-cli-reference.py --output synced-docs/cli
 
 # Live demo — a real `drt docs generate --format html` site, served verbatim
