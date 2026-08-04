@@ -167,7 +167,7 @@ Two MySQL-specific traps:
 1. **The DELETE grant fails late, not on the first run.** The first run baselines and issues no deletes, so a missing `DELETE` privilege only detonates on the *first real generation change* — potentially weeks after rollout. Grant it up front.
 2. **`CREATE TABLE IF NOT EXISTS` still needs `CREATE` — MySQL checks the privilege *before* the existence check**, so pre-creating `_drt_synced_keys` alone did not historically avoid the grant. Since v0.8.x drt first probes `information_schema.tables` and **skips the CREATE entirely when the table already exists**, so an admin can pre-provision the state table (SQL above) and run the sync user with **no DDL privilege** — the sanctioned pattern for "no CREATE for app users" hardening.
 
-**Scoped mirror (`mirror.scope`, [#687](https://github.com/drt-hub/drt/issues/687)):** `scope: [parent_id]` restricts the mirror DELETE to rows whose scope values appeared in this run's source — the stateless fit for 1:N regeneration (delete stale children under regenerated parents, never touch rows under unobserved parents). See the [Postgres scoped-mirror section](postgres.md) for the full semantics.
+**Scoped mirror (`mirror.scope`, [#687](https://github.com/drt-hub/drt/issues/687)):** `scope: [parent_id]` restricts the mirror DELETE to rows whose scope values appeared in this run's source — the stateless fit for 1:N regeneration (delete stale children under regenerated parents, never touch rows under unobserved parents). Composable with `strategy: tracked` ([#694](https://github.com/drt-hub/drt/issues/694)) for co-writer-safe 1:N regeneration, provided `scope` is a subset of `upsert_key`. See the [Postgres scoped-mirror section](postgres.md) for the full semantics — identical on MySQL.
 
 Same `sync.mode: mirror` is supported on **Postgres** (Step 1 — psycopg2's tuple-of-tuples auto-expansion), **ClickHouse** (Step 3 — `ALTER TABLE ... DELETE WHERE` mutation with `mutations_sync=1`), and **Snowflake** (Step 4 — forces the MERGE write path regardless of `config.mode`). BigQuery follows once contributor PR [#584](https://github.com/drt-hub/drt/pull/584) lands. `mirror.strategy: tracked` is currently **Postgres + MySQL only**.
 
@@ -208,6 +208,7 @@ into the destination and cannot be un-sent. See
 ## Notes
 
 - Requires `pip install drt-core[mysql]` (uses `pymysql`)
+- **Query tagging** ([#768](https://github.com/drt-hub/drt/issues/768)): every write query gets a leading `/* drt app=drt sync=<name> run_id=<id> ... */` comment by default (MySQL has no native session/job-tagging mechanism) — see `query_tagging` in `docs/llm/API_REFERENCE.md`.
 - `upsert_key` columns must have a UNIQUE or PRIMARY KEY constraint on the target table
 - `drt test` validators (row_count, not_null, freshness, unique, accepted_values, query) work with MySQL
 - `--dry-run` shows row count diff for `mode: replace`

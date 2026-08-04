@@ -154,12 +154,13 @@ Tracked-specific behaviour:
 
 - **First run baselines** — records the key set, deletes nothing (the second and subsequent runs account for deletions).
 - **Lost / missing state re-baselines** — a WARN is logged and no deletes happen that run; the state is rebuilt from the current run.
+- **The diff runs in SQL, not Python ([#694 part 2](https://github.com/drt-hub/drt/issues/694))** — this run's keys are staged into a scratch table and `previously-synced − current-source` is computed with a `NOT EXISTS` join against `_drt_synced_keys`, so a state table with millions of rows is never read into memory just to compute a diff that's typically small. Only the diffed rows (and the genuinely-new keys to insert) ever reach drt's process. **This assumes unscoped tracked mirror** — see the `mirror.scope` note below for why scoped runs don't get the same guarantee yet ([#890](https://github.com/drt-hub/drt/issues/890)).
 - **Target delete + state rewrite are one transaction** — they commit or roll back together, so the bookkeeping can't drift from the data.
 - **State survives ephemeral runners** — it lives in the destination next to the data (`sync_name`, `key_hash`, `key_json` — one row per synced key, scoped per sync), not in local `.drt/` state.
 - **Key types** — int / str keys round-trip exactly; non-JSON-native key types (datetime, Decimal, UUID) are stringified in the state table, a documented limitation.
 - The empty-source and failed-rows guards above apply to tracked as well — a transient empty source also leaves the tracked baseline untouched.
 
-Choose `destination` when drt owns the table (slightly cheaper: no state I/O). Choose `tracked` when anything else writes to the table. Currently supported on **Postgres and MySQL**; ClickHouse / Snowflake / Databricks reject `strategy: tracked` with a clear error until their follow-ups land.
+Choose `destination` when drt owns the table (slightly cheaper: no state I/O). Choose `tracked` when anything else writes to the table. Supported on every SQL destination that implements `sync.mode: mirror` at all — Postgres, MySQL (#686), Snowflake, ClickHouse, and Databricks ([#692](https://github.com/drt-hub/drt/issues/692), closing the family — mirror mode itself isn't yet available on BigQuery).
 
 **Required destination privileges ([#695](https://github.com/drt-hub/drt/issues/695)):** tracked mirror needs two grants beyond the `mode: full` set (`SELECT, INSERT, UPDATE` on the target). A least-privilege user hardened for `full` writes will otherwise fail — and, because of trap #1 below, often not until weeks later:
 
@@ -190,7 +191,23 @@ sync:
     scope: [parent_id]
 ```
 
-The stateless fit for the parent + child-link shape: a parent entity is periodically regenerated together with its child rows, so stale children **under that parent** must go — but rows under parents *not present in this run* (other pipelines, the application) must not be touched. With `scope`, the mirror DELETE becomes `WHERE parent_id IN (observed parents) AND upsert_key NOT IN (observed keys)` — every run recomputes the diff within the observed scope, so there is no state to lose. A scope column missing from the model output fails fast before any write. Composite scopes (`scope: [tenant_id, parent_id]`) are supported. `scope` still assumes drt owns all rows *under the observed parents* — if co-writers touch the same parents, use `strategy: tracked` instead (combining the two is a follow-up). Postgres + MySQL only for now.
+The stateless fit for the parent + child-link shape: a parent entity is periodically regenerated together with its child rows, so stale children **under that parent** must go — but rows under parents *not present in this run* (other pipelines, the application) must not be touched. With `scope`, the mirror DELETE becomes `WHERE parent_id IN (observed parents) AND upsert_key NOT IN (observed keys)` — every run recomputes the diff within the observed scope, so there is no state to lose. A scope column missing from the model output fails fast before any write. Composite scopes (`scope: [tenant_id, parent_id]`) are supported. `scope` still assumes drt owns all rows *under the observed parents* — if co-writers touch the same parents, combine it with `strategy: tracked` (below). Supported everywhere `sync.mode: mirror` is: Postgres, MySQL, Snowflake, ClickHouse, and Databricks ([#692](https://github.com/drt-hub/drt/issues/692)).
+
+**Tracked + scoped mirror ([#694](https://github.com/drt-hub/drt/issues/694)) — co-writer-safe 1:N regeneration:**
+
+```yaml
+sync:
+  mode: mirror
+  mirror:
+    strategy: tracked
+    scope: [parent_id]
+```
+
+Composing the two: `scope` must be a subset of `destination.upsert_key` (`upsert_key: [parent_id, id]` for the example above) — a run touching one parent leaves every other parent's tracked state untouched (not wiped by a blanket rewrite). Scope values are derived from the already-tracked key rather than stored in a separate state-table column — the reason for the subset requirement, and why no `_drt_synced_keys` migration is needed for tables created before #694. A scope column that isn't part of `upsert_key` fails fast, same as the missing-column check above.
+
+**Scoped runs don't yet get #694 part 2's memory guarantee.** The SQL-side diff query (previous bullet) filters only by `sync_name`, not by scope — scope-filtering happens in Python *after* the SQL diff. The final set of rows deleted is still correct (scope membership and current-run membership are independent conditions, so filtering the diff by scope afterward is equivalent to filtering the full previous set by scope first), but when a run only touches one scope out of many historically-tracked ones, the SQL diff's result is close to the *entire* previous state for that sync — not the small diff the unscoped case gets. Tracked with [#890](https://github.com/drt-hub/drt/issues/890); fixing it needs dialect-specific JSON extraction from `key_json` (scope isn't a separate column) or reopening the schema-migration tradeoff above.
+
+`scope` alone (without `tracked`) still assumes drt owns all rows under the observed parents.
 
 Same `sync.mode: mirror` is supported on **MySQL** (explicit `%s` placeholder list), **ClickHouse** (`ALTER TABLE ... DELETE WHERE` mutation with `mutations_sync=1`), and **Snowflake** (forces the MERGE write path regardless of `config.mode`). BigQuery follows once contributor PR [#584](https://github.com/drt-hub/drt/pull/584) lands.
 
@@ -287,6 +304,7 @@ a short `idle_in_transaction_session_timeout`, a slow destination can now trip i
 ## Notes
 
 - Requires `pip install drt-core[postgres]` (uses `psycopg2`)
+- **Query tagging** ([#768](https://github.com/drt-hub/drt/issues/768)): every write query gets a leading `/* drt app=drt sync=<name> run_id=<id> ... */` comment by default (Postgres has no native session/job-tagging mechanism) — see `query_tagging` in `docs/llm/API_REFERENCE.md`.
 - `upsert_key` columns must have a UNIQUE constraint on the target table
 - `drt test` validators (row_count, not_null, freshness, unique, accepted_values, query) work with PostgreSQL
 - `--dry-run` shows row count diff for `mode: replace`
