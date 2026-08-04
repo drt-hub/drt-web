@@ -175,7 +175,18 @@ def param_rows(cmd: click.Command, ctx: click.Context) -> tuple[list[str], list[
 
 
 def render(path: tuple[str, ...], cmd: click.Command, position: int) -> str:
-    """One Markdown page for one command."""
+    """One Markdown page for one command.
+
+    ``sidebar_position`` is a running depth-first index, which means inserting
+    one command upstream renumbers every page after it — a one-command change
+    arrives as a 34-file diff. That is a real cost and it was worth trying to
+    remove, but dropping the key is not the fix: Docusaurus then orders
+    unpositioned docs by *filename including the extension*, and ``-`` (0x2D)
+    sorts before ``.`` (0x2E), so ``cloud-push.md`` precedes ``cloud.md`` and
+    every group page lands after its own children. Verified against a real
+    build. Fixing it properly means nested directories mirroring the command
+    tree, or a separator that sorts after ``.`` — both change published URLs.
+    """
     full = " ".join(("drt", *path))
     ctx = click.Context(cmd, info_name=full)
 

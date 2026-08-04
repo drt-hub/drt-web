@@ -1,0 +1,31 @@
+# Renderer pins for the CLI reference generator (scripts/gen-cli-reference.py).
+#
+# Shared by scripts/sync-from-drt.sh, which *generates* the pages, and by
+# .github/workflows/check-generated-docs.yml, which *regenerates* them to prove
+# the committed copies are current. Both must resolve the same versions — if
+# they drift apart the check reports differences that are an artefact of the
+# check itself rather than of the pages, which is worse than having no check.
+#
+# These are exact `==` pins, not ranges. One file is not enough on its own: a
+# range like `click>=8.3,<9` installed with --upgrade resolves to whatever is
+# newest at the moment each job runs, so the sync run and the check run would
+# still pick different renderers days apart, and every open PR would fail with
+# no repo change behind it. The pins are what actually holds them together.
+#
+# `click`: Typer >= 0.16 vendors Click as `typer._click` and no longer declares
+# the real package as a dependency, so `drt-core[docs]` alone leaves
+# `import click` failing while the CLI itself works fine — that is what broke
+# run 30555942117. The generator falls back to `typer._click`, so this pin
+# keeps the fallback a safety net rather than the normal path.
+#
+# `typer`: drt asks only for `typer>=0.12`, and the rendering of parameter
+# metavars changed between 0.24 and 0.27 (`SYNC_NAME` / `INTEGER` became
+# `{sync_name}` / `<int>`). Unpinned, a sync run would silently rewrite 21 of
+# the 34 generated pages with no drt-side change behind it, and the diff would
+# read as a real docs update.
+#
+# Bump either pin deliberately, when the new rendering is wanted. The drift
+# check will then fail until the pages are regenerated — that failure is the
+# feature, not a regression.
+click==8.4.2
+typer==0.24.2

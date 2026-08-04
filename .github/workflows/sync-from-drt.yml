@@ -27,6 +27,22 @@ jobs:
       - name: Regenerate connector matrix + docs from drt
         run: bash scripts/sync-from-drt.sh
 
+      # Same reasoning as the build check below: this PR is opened with
+      # GITHUB_TOKEN, so check-generated-docs.yml never runs on it — and this is
+      # the one job that actually rewrites the CLI reference. Running the
+      # generator a second time and diffing proves it is idempotent, which is
+      # the assumption the whole drift check rests on. A second run that differs
+      # means the renderer is non-deterministic, and the pages about to be
+      # committed are arbitrary.
+      - name: Verify the CLI reference is reproducible
+        run: |
+          python scripts/gen-cli-reference.py --output "${RUNNER_TEMP}/cli-recheck"
+          if ! diff -ru synced-docs/cli "${RUNNER_TEMP}/cli-recheck"; then
+            echo "::error::gen-cli-reference.py is not idempotent — two runs in the same environment disagree."
+            exit 1
+          fi
+          echo "CLI reference is reproducible."
+
       # Build-check the regenerated site before opening a PR. Bot-created PRs
       # don't trigger the deploy.yml `pull_request` build (GITHUB_TOKEN can't
       # trigger workflows), so validate here: if a synced doc/data change breaks
