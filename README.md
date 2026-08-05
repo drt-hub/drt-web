@@ -30,6 +30,7 @@ Every change — design or content — arrives as a PR a maintainer approves; me
 | `.github/workflows/deploy.yml` | Build (Docusaurus if `package.json` present, else the static placeholder) → publish to GitHub Pages |
 | `.github/workflows/sync-from-drt.yml` | Regenerate connector matrix + docs from drt → open a PR if changed |
 | `.github/workflows/check-generated-docs.yml` | Regenerate `synced-docs/cli/` and fail if the committed pages moved |
+| `.github/dependabot.yml` | Weekly npm + GitHub Actions update PRs (`@docusaurus/*` grouped) |
 | `scripts/sync-from-drt.sh` | The generator (CLI JSON + a shallow clone of drt's `docs/`) |
 | `scripts/gen-cli-reference.py` | Builds `synced-docs/cli/` by walking the installed drt CLI's command tree |
 | `scripts/requirements-cli-docs.txt` | Pinned renderers (`click`, `typer`) shared by the generator and its drift check |
