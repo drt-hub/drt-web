@@ -1,9 +1,16 @@
-# Dependency update PRs. Both surfaces here rot silently otherwise: a public
-# site with no automated path means a CVE fix lands only when someone
-# remembers to bump.
+# Dependency update PRs for the two surfaces that rot silently otherwise: the
+# npm tree behind the published site, and the action majors the workflows pin.
 #
 # Weekly, and nothing merges itself — update PRs arrive like the SSoT sync PRs
 # do and deploy only when a maintainer merges them.
+#
+# Two things this does NOT cover, both on purpose:
+#   * scripts/requirements-cli-docs.txt — see that file for why a `pip` block
+#     would put a red PR on the weekly rota.
+#   * Transitive dependencies. `updates:` configures *version* updates, which
+#     default to direct dependencies. Real-time CVE patches for the tree below
+#     the top level come from Dependabot security updates, which are a
+#     repository setting rather than anything this file can turn on.
 version: 2
 updates:
   # npm — Docusaurus, React and the theme packages behind the published site.
