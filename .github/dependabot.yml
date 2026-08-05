@@ -28,6 +28,8 @@ updates:
     # an ecosystem label, which drt's PRs do not carry.
     labels:
       - dependencies
+    # 1 group PR + 6 ungrouped direct deps = 7 candidates against a default of 5.
+    open-pull-requests-limit: 8
 
   # GitHub Actions — the workflows pin majors (checkout@v4, setup-node@v4,
   # create-pull-request@v6). Majors go unsupported without warning, and the
@@ -42,5 +44,12 @@ updates:
       interval: weekly
     commit-message:
       prefix: ci
+      # Without this the subject is `ci: bump ...`, not `ci(deps): bump ...` —
+      # `include` is what adds the scope, and the npm block above sets it.
+      include: scope
     labels:
       - dependencies
+    # Default is 5, and this repo uses 7 distinct actions. Left at the default,
+    # two of them would get no PR at all, and the block's "one PR each" would
+    # be quietly false for whichever two sorted last.
+    open-pull-requests-limit: 8
