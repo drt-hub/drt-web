@@ -68,7 +68,12 @@ const config = {
   // already hundreds of lines of generated Markdown, and get merged.
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  onBrokenAnchors: 'ignore',
+  // Anchors warn rather than throw: they break when a heading is reworded
+  // upstream, which is frequent and usually cosmetic. Failing the build on
+  // that would make routine drt docs edits break the site, which is how a
+  // setting like this gets weakened back to 'ignore'. 'warn' is loud enough
+  // to act on and quiet enough to survive.
+  onBrokenAnchors: 'warn',
 
   i18n: {defaultLocale: 'en', locales: ['en']},
 
