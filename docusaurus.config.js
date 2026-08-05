@@ -67,7 +67,6 @@ const config = {
   // warning would land in the CI log of a `chore: sync ...` PR whose diff is
   // already hundreds of lines of generated Markdown, and get merged.
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
   // Anchors warn rather than throw: they break when a heading is reworded
   // upstream, which is frequent and usually cosmetic. Failing the build on
   // that would make routine drt docs edits break the site, which is how a
@@ -80,7 +79,14 @@ const config = {
   // `.md` is parsed as CommonMark, `.mdx` as MDX. The generated CLI pages carry
   // CLI help verbatim — `mcp run` embeds a JSON snippet whose braces MDX would
   // read as expressions — so they must not go through the MDX parser.
-  markdown: {format: 'detect'},
+  // `onBrokenMarkdownLinks` lives here rather than at the top level, where it
+  // is deprecated and removed in Docusaurus v4 — it was emitting two
+  // deprecation warnings on every build, which is exactly the noise that hides
+  // a real one.
+  markdown: {
+    format: 'detect',
+    hooks: {onBrokenMarkdownLinks: 'warn'},
+  },
 
   plugins: [
     drtSsotPlugin,
