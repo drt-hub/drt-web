@@ -12,12 +12,22 @@ updates:
     schedule:
       interval: weekly
     groups:
-      # The five @docusaurus/* packages are released in lockstep and have to
-      # move together; ungrouped they arrive as five PRs that each fail the
-      # build until the other four land.
+      # @docusaurus/preset-classic pins "@docusaurus/core" to an *exact*
+      # version, so a lone core bump does not fail loudly — npm resolves a
+      # second nested copy at the old version and the build goes green while
+      # shipping two Docusaurus versions. Grouping the five is what prevents
+      # that silent split, rather than saving PR count.
       docusaurus:
         patterns:
           - "@docusaurus/*"
+      # react-dom declares peerDependencies { react: "^18.3.1" }, so the two
+      # are lockstep at install time. Ungrouped, a react-only PR fails
+      # `npm ci` with ERESOLVE — or Dependabot notices the conflict and skips
+      # both, leaving React silently un-updated with no PR to notice.
+      react:
+        patterns:
+          - react
+          - react-dom
     commit-message:
       # The repo writes Conventional Commits by hand; keep bot history in the
       # same shape rather than "Bump x from a to b".
@@ -28,7 +38,7 @@ updates:
     # an ecosystem label, which drt's PRs do not carry.
     labels:
       - dependencies
-    # 1 group PR + 6 ungrouped direct deps = 7 candidates against a default of 5.
+    # 2 group PRs + 4 ungrouped direct deps = 6 candidates against a default of 5.
     open-pull-requests-limit: 8
 
   # GitHub Actions — the workflows pin majors (checkout@v4, setup-node@v4,
