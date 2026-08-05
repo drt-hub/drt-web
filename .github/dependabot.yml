@@ -1,0 +1,25 @@
+# Dependency update PRs. Both surfaces here rot silently otherwise: a public
+# site with no automated path means a CVE fix lands only when someone
+# remembers to bump.
+#
+# Weekly, and nothing merges itself — update PRs arrive like the SSoT sync PRs
+# do and deploy only when a maintainer merges them.
+version: 2
+updates:
+  # npm — Docusaurus, React and the theme packages behind the published site.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # The five @docusaurus/* packages are released in lockstep and have to
+      # move together; ungrouped they arrive as five PRs that each fail the
+      # build until the other four land.
+      docusaurus:
+        patterns:
+          - "@docusaurus/*"
+    commit-message:
+      # The repo writes Conventional Commits by hand; keep bot history in the
+      # same shape rather than "Bump x from a to b".
+      prefix: chore
+      include: scope
