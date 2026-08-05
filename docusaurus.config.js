@@ -59,7 +59,14 @@ const config = {
   projectName: 'drt-web',
   trailingSlash: false,
 
-  onBrokenLinks: 'warn',
+  // A broken link fails the build rather than logging. Safe to turn on now
+  // because a full build emits zero of them, so this cannot bite retroactively
+  // — and it stops being safe to leave off as soon as more of synced-docs/ is
+  // wired up: that content is authored in drt, where a relative link that
+  // resolves in drt's tree need not resolve in this site's route space. A
+  // warning would land in the CI log of a `chore: sync ...` PR whose diff is
+  // already hundreds of lines of generated Markdown, and get merged.
+  onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   onBrokenAnchors: 'ignore',
 
