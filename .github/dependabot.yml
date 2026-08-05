@@ -23,6 +23,11 @@ updates:
       # same shape rather than "Bump x from a to b".
       prefix: chore
       include: scope
+    # Same label drt uses, so a filter or board that spans both repos matches
+    # both. Without this Dependabot still adds "dependencies" but also tacks on
+    # an ecosystem label, which drt's PRs do not carry.
+    labels:
+      - dependencies
 
   # GitHub Actions — the workflows pin majors (checkout@v4, setup-node@v4,
   # create-pull-request@v6). Majors go unsupported without warning, and the
@@ -37,3 +42,5 @@ updates:
       interval: weekly
     commit-message:
       prefix: ci
+    labels:
+      - dependencies
