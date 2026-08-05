@@ -23,3 +23,17 @@ updates:
       # same shape rather than "Bump x from a to b".
       prefix: chore
       include: scope
+
+  # GitHub Actions — the workflows pin majors (checkout@v4, setup-node@v4,
+  # create-pull-request@v6). Majors go unsupported without warning, and the
+  # first symptom is a workflow that stops running.
+  #
+  # Deliberately ungrouped, unlike the npm block above: these actions are
+  # independent of each other, so one PR each stays reviewable and lets a bad
+  # bump be reverted on its own.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
