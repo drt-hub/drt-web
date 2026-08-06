@@ -47,7 +47,7 @@ jobs:
       # don't trigger the deploy.yml `pull_request` build (GITHUB_TOKEN can't
       # trigger workflows), so validate here: if a synced doc/data change breaks
       # the Docusaurus build, fail the sync instead of opening a broken PR.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: ${{ hashFiles('package.json') != '' }}
         with:
           node-version: 20
