@@ -156,9 +156,17 @@ const config = {
         title: 'drt',
         logo: {alt: 'drt', src: 'img/logo.png'},
         items: [
-          {to: '/#why', label: 'Why drt', position: 'left'},
-          {to: '/#connectors', label: 'Connectors', position: 'left'},
-          {to: '/#quickstart', label: 'Quickstart', position: 'left'},
+          // The three section links use `pathname://` + `target: '_self'` rather
+          // than `to:`. `to:` sends them through Docusaurus' anchor checker,
+          // which only indexes Markdown headings and cannot see `id="why"` on a
+          // React page — 117 false-positive warnings per build, from every page
+          // that renders the navbar. `pathname://` keeps baseUrl applied (a bare
+          // `href` would drop `/drt-web/`), and `target: '_self'` is load-bearing:
+          // without it Docusaurus treats these as external and opens them in a
+          // new tab.
+          {href: 'pathname:///#why', label: 'Why drt', position: 'left', target: '_self'},
+          {href: 'pathname:///#connectors', label: 'Connectors', position: 'left', target: '_self'},
+          {href: 'pathname:///#quickstart', label: 'Quickstart', position: 'left', target: '_self'},
           {href: 'pathname:///demo/docs/', label: 'Live demo', position: 'left'},
           {href: 'https://pypi.org/project/drt-core/', label: 'PyPI', position: 'right'},
           {href: 'https://github.com/drt-hub/drt', label: 'GitHub', position: 'right'},
@@ -170,9 +178,9 @@ const config = {
           {
             title: 'Product',
             items: [
-              {label: 'Why drt', to: '/#why'},
-              {label: 'Connectors', to: '/#connectors'},
-              {label: 'Quickstart', to: '/#quickstart'},
+              {label: 'Why drt', href: 'pathname:///#why', target: '_self'},
+              {label: 'Connectors', href: 'pathname:///#connectors', target: '_self'},
+              {label: 'Quickstart', href: 'pathname:///#quickstart', target: '_self'},
               {label: 'PyPI', href: 'https://pypi.org/project/drt-core/'},
             ],
           },
