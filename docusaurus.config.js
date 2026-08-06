@@ -66,6 +66,14 @@ const config = {
   // resolves in drt's tree need not resolve in this site's route space. A
   // warning would land in the CI log of a `chore: sync ...` PR whose diff is
   // already hundreds of lines of generated Markdown, and get merged.
+  //
+  // Blast radius worth knowing: sync-from-drt.yml build-checks the site before
+  // it opens its PR, and that step runs ahead of the create-PR step with no
+  // `if: always()`. So one broken link in synced content now fails the whole
+  // weekly sync — connector matrix, version.txt and the CLI reference all stop
+  // updating — and the only signal is a red scheduled run, with no PR to
+  // notice. That is the intended trade (a broken site should not ship), but it
+  // is a louder failure than "a warning in a log".
   onBrokenLinks: 'throw',
   // Anchors warn rather than throw: they break when a heading is reworded
   // upstream, which is frequent and usually cosmetic. Failing the build on
