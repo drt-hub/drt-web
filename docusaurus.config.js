@@ -18,6 +18,10 @@ function drtSsotPlugin() {
   return {
     name: 'drt-ssot-data',
     async loadContent() {
+      /**
+       * @param {string} rel
+       * @param {Array<{type: string, name: string}>} fallback
+       */
       const readJson = (rel, fallback) => {
         try {
           const raw = JSON.parse(fs.readFileSync(path.join(__dirname, rel), 'utf8'));
@@ -28,6 +32,7 @@ function drtSsotPlugin() {
           return fallback;
         }
       };
+      /** @param {string} rel */
       const readText = (rel) => {
         try {
           return fs.readFileSync(path.join(__dirname, rel), 'utf8').trim();
@@ -41,6 +46,7 @@ function drtSsotPlugin() {
         version: readText('data/version.txt'),
       };
     },
+    /** @param {{content: unknown, actions: {setGlobalData: (data: unknown) => void}}} params */
     async contentLoaded({content, actions}) {
       actions.setGlobalData(content);
     },
