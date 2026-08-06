@@ -91,6 +91,13 @@ const config = {
   // is deprecated and removed in Docusaurus v4 — it was emitting two
   // deprecation warnings on every build, which is exactly the noise that hides
   // a real one.
+  //
+  // `warn` is not the whole story and the config should not imply otherwise:
+  // an unresolvable `[x](./missing.md)` warns *here*, then the leftover target
+  // fails route resolution and `onBrokenLinks: 'throw'` above fails the build.
+  // Verified by injecting one — the warning fires and the build still exits 1.
+  // So markdown links are effectively hard failures; this hook governs the
+  // message, not whether it ships.
   markdown: {
     format: 'detect',
     hooks: {onBrokenMarkdownLinks: 'warn'},
