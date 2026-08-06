@@ -59,16 +59,49 @@ const config = {
   projectName: 'drt-web',
   trailingSlash: false,
 
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
-  onBrokenAnchors: 'ignore',
+  // A broken link fails the build rather than logging. Safe to turn on now
+  // because a full build emits zero of them, so this cannot bite retroactively
+  // — and it stops being safe to leave off as soon as more of synced-docs/ is
+  // wired up: that content is authored in drt, where a relative link that
+  // resolves in drt's tree need not resolve in this site's route space. A
+  // warning would land in the CI log of a `chore: sync ...` PR whose diff is
+  // already hundreds of lines of generated Markdown, and get merged.
+  //
+  // Blast radius worth knowing: sync-from-drt.yml build-checks the site before
+  // it opens its PR, and that step runs ahead of the create-PR step with no
+  // `if: always()`. So one broken link in synced content now fails the whole
+  // weekly sync — connector matrix, version.txt and the CLI reference all stop
+  // updating — and the only signal is a red scheduled run, with no PR to
+  // notice. That is the intended trade (a broken site should not ship), but it
+  // is a louder failure than "a warning in a log".
+  onBrokenLinks: 'throw',
+  // Anchors warn rather than throw: they break when a heading is reworded
+  // upstream, which is frequent and usually cosmetic. Failing the build on
+  // that would make routine drt docs edits break the site, which is how a
+  // setting like this gets weakened back to 'ignore'. 'warn' is loud enough
+  // to act on and quiet enough to survive.
+  onBrokenAnchors: 'warn',
 
   i18n: {defaultLocale: 'en', locales: ['en']},
 
   // `.md` is parsed as CommonMark, `.mdx` as MDX. The generated CLI pages carry
   // CLI help verbatim — `mcp run` embeds a JSON snippet whose braces MDX would
   // read as expressions — so they must not go through the MDX parser.
-  markdown: {format: 'detect'},
+  // `onBrokenMarkdownLinks` lives here rather than at the top level, where it
+  // is deprecated and removed in Docusaurus v4 — it was emitting two
+  // deprecation warnings on every build, which is exactly the noise that hides
+  // a real one.
+  //
+  // `warn` is not the whole story and the config should not imply otherwise:
+  // an unresolvable `[x](./missing.md)` warns *here*, then the leftover target
+  // fails route resolution and `onBrokenLinks: 'throw'` above fails the build.
+  // Verified by injecting one — the warning fires and the build still exits 1.
+  // So markdown links are effectively hard failures; this hook governs the
+  // message, not whether it ships.
+  markdown: {
+    format: 'detect',
+    hooks: {onBrokenMarkdownLinks: 'warn'},
+  },
 
   plugins: [
     drtSsotPlugin,
@@ -123,9 +156,17 @@ const config = {
         title: 'drt',
         logo: {alt: 'drt', src: 'img/logo.png'},
         items: [
-          {to: '/#why', label: 'Why drt', position: 'left'},
-          {to: '/#connectors', label: 'Connectors', position: 'left'},
-          {to: '/#quickstart', label: 'Quickstart', position: 'left'},
+          // The three section links use `pathname://` + `target: '_self'` rather
+          // than `to:`. `to:` sends them through Docusaurus' anchor checker,
+          // which only indexes Markdown headings and cannot see `id="why"` on a
+          // React page — 117 false-positive warnings per build, from every page
+          // that renders the navbar. `pathname://` keeps baseUrl applied (a bare
+          // `href` would drop `/drt-web/`), and `target: '_self'` is load-bearing:
+          // without it Docusaurus treats these as external and opens them in a
+          // new tab.
+          {href: 'pathname:///#why', label: 'Why drt', position: 'left', target: '_self'},
+          {href: 'pathname:///#connectors', label: 'Connectors', position: 'left', target: '_self'},
+          {href: 'pathname:///#quickstart', label: 'Quickstart', position: 'left', target: '_self'},
           {href: 'pathname:///demo/docs/', label: 'Live demo', position: 'left'},
           {href: 'https://pypi.org/project/drt-core/', label: 'PyPI', position: 'right'},
           {href: 'https://github.com/drt-hub/drt', label: 'GitHub', position: 'right'},
@@ -137,9 +178,9 @@ const config = {
           {
             title: 'Product',
             items: [
-              {label: 'Why drt', to: '/#why'},
-              {label: 'Connectors', to: '/#connectors'},
-              {label: 'Quickstart', to: '/#quickstart'},
+              {label: 'Why drt', href: 'pathname:///#why', target: '_self'},
+              {label: 'Connectors', href: 'pathname:///#connectors', target: '_self'},
+              {label: 'Quickstart', href: 'pathname:///#quickstart', target: '_self'},
               {label: 'PyPI', href: 'https://pypi.org/project/drt-core/'},
             ],
           },
