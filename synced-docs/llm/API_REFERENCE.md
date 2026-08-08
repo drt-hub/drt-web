@@ -142,6 +142,7 @@ api_users:
 Local secret store for development. Gitignored by default.
 
 Resolution order: explicit YAML value > environment variable > secrets.toml
+> provider URI
 
 ```toml
 [destinations.mysql]
@@ -157,6 +158,27 @@ SNOWFLAKE_PASSWORD = "dev-password"
 SNOWFLAKE_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
 ..."""
 ```
+
+---
+
+## Secret provider URIs (#782)
+
+Any `*_env` field can be a `scheme://...` URI instead of a plain env var
+name — tried last in the resolution order above, once explicit/env/toml
+have all come back empty:
+
+```yaml
+password_env: "aws-sm://prod/drt/snowflake#password"
+```
+
+| Scheme | Extra | Example |
+|---|---|---|
+| `aws-sm://` | `drt-core[aws-secrets]` | `aws-sm://prod/drt/snowflake#password` |
+| `gcp-sm://` | `drt-core[gcp-secrets]` | `gcp-sm://projects/p/secrets/drt-sf/versions/latest#password` |
+| `vault://` | `drt-core[vault]` | `vault://secret/data/drt/snowflake#password` (`#key` required) |
+
+See [Secret Provider URIs](../guides/secret-provider-uris.md) for IAM/policy
+snippets, the caching behaviour, and `drt serve`-specific caveats.
 
 ---
 
@@ -205,13 +227,25 @@ sync:                       # optional: all fields have defaults
     lag: "1 hour"           # optional (#759): overlap window — re-read this far behind the stored watermark to catch late-arriving rows. Duration string for timestamp cursors ("1 hour", same grammar as freshness.max_age) or positive int for numeric cursors. Storage-sourced watermarks only (never --cursor-value / default_value); the persisted watermark is never lagged. Overlap rows are RE-SENT each run — destination must tolerate duplicates (upsert_key)
   batch_size: 100           # default: 100 — rows per destination call
   on_error: fail            # "fail" (default) | "skip"
+  computed_fields:          # optional (#763): declarative derived columns {field_name: jinja_template}
+    full_name: "{{ row.first_name }} {{ row.last_name }}"   # reads SOURCE column names, like cursor_field / lookups
+    signup_ms: "{{ (row.signup_ts.timestamp() * 1000) | int }}"
+    source_system: "drt-${ENV}"          # constants and ${VAR} substitution both work
+    # transform order: computed_fields -> field_mappings -> mask. A SINGLE-EXPRESSION template keeps the
+    # Python value's type ({{ row.n * 1000 }} -> 5000, not "5000"); anything with surrounding text renders
+    # as a string. A computed field can never read another (order-independent, like field_mappings).
+    # Writing an existing column name replaces it in place and reads the ORIGINAL value (phone -> E.164).
+    # Same Jinja env / filters / StrictUndefined as body_template. Syntax is validated at config load;
+    # a missing column is a run-time error under on_error (skip = drop the row, fail = stop and name the field).
+    # WARNING: a null passed THROUGH a filter renders as the string "None" (Jinja stringifies before
+    # filtering) — write {{ row.phone or '' | replace('-','') }}. A bare {{ row.phone }} stays null.
   field_mappings:           # optional (#415): declarative column rename {source_column: destination_field}
-    user_id: id             # applied after extraction + cursor tracking + lookups, just before the destination
-    full_name: name         # cursor_field / lookups use SOURCE names; upsert_key / destination columns use MAPPED names
+    user_id: id             # applied after extraction + cursor tracking + lookups + computed_fields
+    full_name: name         # cursor_field / lookups / computed_fields use SOURCE names; upsert_key / destination columns use MAPPED names
   mask:                     # optional (#427/#660): PII masking — obscure fields before they reach the destination
     email: hash             # "hash" (SHA-256 hex) | "redact" ("[REDACTED]"); keys reference the DESTINATION-facing name (post field_mappings)
     name: { strategy: truncate, length: 2 }  # object form for parameterised strategies (truncate keeps the first N chars)
-    # runs as the LAST transform (after field_mappings); nulls pass through; works on every destination; source SQL untouched
+    # runs as the LAST transform (after computed_fields and field_mappings); nulls pass through; works on every destination; source SQL untouched
   dlq:                      # optional (#278): Dead Letter Queue — persist per-record load failures for replay
     enabled: false          # default: false (opt-in) — writes FULL records to .drt/dlq/<sync>.jsonl (a PII decision)
     max_records: 10000      # default: 10000 — cap queue size; oldest entries dropped past this (0 = unbounded)
@@ -308,6 +342,56 @@ debugging **snapshot of the current run** — each run overwrites the file, and 
 passes has its stale sample removed). **`sync.mask` (#427) is applied before anything is
 written** — masked columns are masked in the failure file, never the raw value. `row_count` has
 no per-row failure concept, so nothing is written for it. Off by default.
+
+---
+
+## `unit_tests` — offline transform-pipeline tests (#780)
+
+A sibling of `tests:` at the top level of a sync file, not nested under it — `tests:` queries the
+**destination** after a real sync; `unit_tests:` never touches a destination at all.
+
+```yaml
+name: users_to_hubspot
+model: ref('users')
+destination: { type: hubspot, api_key_env: HUBSPOT_KEY, object_type: contacts }
+
+sync:
+  field_mappings: { first: given_name }
+  mask: { email: hash }
+
+unit_tests:                                   # optional: offline transform-pipeline tests
+  - name: masks_email_and_renames             # required: label, shown in output
+    given:                                    # required: fixture rows (>= 1), source column names
+      - { id: 1, email: "alice@example.com", first: "Alice", last: "Doe" }
+    expect:                                   # required: expected rows (>= 1), destination-facing names
+      - { id: 1, given_name: "Alice" }        # subset match — undeclared keys in the real
+                                               # output are ignored (see below)
+```
+
+```bash
+drt test --unit                          # text
+drt test --unit --output json            # json
+drt test --unit --select users_to_hubspot --fail-fast
+```
+
+**What it runs.** `given` rows are pushed through the *real* engine transform chain —
+`field_mappings` → `mask` (and any other stage the engine applies before `destination.load()`) —
+via a fake source and a capturing destination, so `given` uses **source** column names (the same
+names `cursor_field` and `lookups` read) and `expect` uses **destination-facing** names
+(post-rename, post-mask). No network call, no credential, no destination connection.
+
+**`expect` is a subset match per row**, not exact-record equality — only the keys a test declares
+are checked, so a sync's source columns growing later doesn't break every existing unit test. Row
+**count** is still checked exactly: a transform that drops or duplicates a row is exactly what a
+unit test exists to catch.
+
+**Not supported yet:** a sync whose destination has `lookups:` configured — lookups resolve
+against the real destination, and there is no fake for that. `drt test --unit` reports it as a
+failed test (not a crash) naming the reason. Mutually exclusive with `--dry-run` and
+`--store-failures`, which are destination-connected concepts unit tests don't have.
+
+Prior art: dbt unit tests (`given` / `expect` YAML, no live data); Census / Hightouch mapper
+previews with sample records.
 
 ---
 
