@@ -1,7 +1,7 @@
 {
-  "schema_version": 2,
-  "drt_version": "0.8.5",
-  "generated_at": "2026-08-06T00:00:04Z",
+  "schema_version": 3,
+  "drt_version": "0.9.0",
+  "generated_at": "2026-08-13T06:32:45Z",
   "project": {
     "name": "acme-analytics",
     "profile": "bq_prod"
@@ -16,6 +16,7 @@
       "tags": [
         "core"
       ],
+      "config_hash": "cf2c52d2f4f5deca",
       "state": {
         "last_sync_at": "2026-07-09T21:05:00Z",
         "last_cursor_value": null,
@@ -34,6 +35,7 @@
       "tags": [
         "ops"
       ],
+      "config_hash": "c2ddd4de766e76b4",
       "state": {
         "last_sync_at": "2026-07-09T22:55:33Z",
         "last_cursor_value": null,
@@ -52,6 +54,7 @@
       "tags": [
         "ops"
       ],
+      "config_hash": "978392361f2f7f67",
       "state": {
         "last_sync_at": "2026-07-09T18:00:00Z",
         "last_cursor_value": null,
@@ -70,6 +73,7 @@
       "tags": [
         "ops"
       ],
+      "config_hash": "dba95ead8f8ef444",
       "state": {
         "last_sync_at": "2026-07-09T19:15:00Z",
         "last_cursor_value": "2026-07-09T19:00:00Z",
@@ -88,6 +92,7 @@
       "tags": [
         "gtm"
       ],
+      "config_hash": "cb98b2725c812779",
       "state": {
         "last_sync_at": "2026-07-09T16:00:00Z",
         "last_cursor_value": "2026-07-09T15:30:00Z",
@@ -106,6 +111,7 @@
       "tags": [
         "core"
       ],
+      "config_hash": "5e2c89a87f402479",
       "state": {
         "last_sync_at": "2026-07-09T23:00:48Z",
         "last_cursor_value": null,
@@ -134,6 +140,7 @@
       "mode": "full",
       "description": "Product catalog snapshot.",
       "tags": [],
+      "config_hash": "6036dda79403b28c",
       "state": {
         "last_sync_at": "2026-07-09T20:30:00Z",
         "last_cursor_value": null,
@@ -152,6 +159,7 @@
       "tags": [
         "analytics"
       ],
+      "config_hash": "658f11c9c258706c",
       "state": {
         "last_sync_at": "2026-07-09T22:10:30Z",
         "last_cursor_value": "2026-07-09T22:00:00Z",
@@ -171,6 +179,7 @@
         "gtm",
         "pii"
       ],
+      "config_hash": "50617f2c94b45a83",
       "state": {
         "last_sync_at": "2026-07-09T22:00:11Z",
         "last_cursor_value": "2026-07-09T21:45:00Z",
@@ -197,6 +206,7 @@
         "core",
         "pii"
       ],
+      "config_hash": "0f3c21d3aaa21836",
       "state": {
         "last_sync_at": "2026-07-09T23:55:12Z",
         "last_cursor_value": "2026-07-09T23:50:00Z",

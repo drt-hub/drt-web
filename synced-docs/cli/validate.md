@@ -14,6 +14,7 @@ Examples:
 ```
 drt validate
 drt validate --select post_users
+drt validate --select state:modified --state ci-baseline/manifest.json
 drt validate --emit-schema
 drt validate --strict
 ```
@@ -28,8 +29,9 @@ drt validate [OPTIONS]
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob, tag:&lt;pattern&gt;, destination:&lt;type&gt;, or "*" / "all". Repeat to union. |
+| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob, tag:&lt;pattern&gt;, destination:&lt;type&gt;, state:modified/state:new, or "*" / "all". Repeat to union. |
 | `--exclude` | `TEXT` |  | Subtract syncs from the selection (same grammar as --select). Repeatable. |
+| `--state` | `PATH` |  | Baseline manifest path for state:modified/state:new selectors (for example, a prior `drt docs generate --format json` CI artifact). |
 | `--emit-schema` | `BOOLEAN` |  | Write JSON Schemas to .drt/schemas/. |
 | `--check-connection` | `BOOLEAN` |  | Test connectivity to SQL destinations. |
 | `--output`, `-o` | `TEXT` | `text` | Output format: text or json. |

@@ -9,6 +9,10 @@ sidebar_position: 29
 
 Start an HTTP endpoint that triggers drt syncs on demand.
 
+A trigger is answered with 202 and a run id; poll GET /runs/&lt;id&gt; for the
+outcome, or pass ?wait=true to block for the result. Same-sync triggers
+coalesce; different syncs run concurrently.
+
 Example:
 
 ```
@@ -31,3 +35,6 @@ drt serve [OPTIONS]
 | `--host` | `TEXT` | `127.0.0.1` | Host to bind. |
 | `--port`, `-p` | `INTEGER` | `8080` | Port to bind. |
 | `--token-env` | `TEXT` | `DRT_WEBHOOK_TOKEN` | Env var holding bearer token for auth. Empty/unset = no auth. |
+| `--auth` | `TEXT` | `auto` | Auth scheme: auto (bearer if token env set, else none), none, bearer, or hmac (HMAC-SHA256 body signature). |
+| `--hmac-secret-env` | `TEXT` | `DRT_WEBHOOK_HMAC_SECRET` | Env var holding the HMAC signing secret (for --auth hmac). |
+| `--hmac-header` | `TEXT` | `X-Hub-Signature-256` | Header carrying the HMAC signature (for --auth hmac). |
