@@ -78,6 +78,69 @@ fi
 
 rm -rf .drt-src
 
+manifest="static/demo/docs/manifest.json"
+if git rev-parse --verify -q HEAD >/dev/null 2>&1 && git cat-file -e "HEAD:${manifest}" 2>/dev/null; then
+  if python - "$manifest" <<'PY'
+import json, pathlib, re, subprocess, sys
+
+manifest = sys.argv[1]
+
+# The value token only, so the key and the surrounding whitespace still have to
+# match byte for byte below. A reformat of this line is a real change.
+KEY = re.compile(r'("generated_at"\s*:\s*)("(?:[^"\\]|\\.)*")')
+
+
+def bail():
+    """Not a timestamp-only sync — leave everything alone."""
+    raise SystemExit(1)
+
+
+# Every path the sync touched, tracked or not, NUL-separated so a filename with
+# a space or a quote in it cannot be split into two records. Exactly one record,
+# and it has to be the manifest, modified in the worktree and nowhere else: a
+# rename record carries a second path and lands here as two, which bails.
+status = subprocess.run(
+    ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
+    capture_output=True, check=True,
+).stdout.decode("utf-8")
+records = [r for r in status.split("\0") if r]
+if len(records) != 1 or records[0][:3] != " M " or records[0][3:] != manifest:
+    bail()
+
+# Read as bytes and decode explicitly: text mode would translate CRLF to LF on
+# both sides and hide a line-ending change, which is not a timestamp change.
+new_text = pathlib.Path(manifest).read_bytes().decode("utf-8")
+old_text = subprocess.run(
+    ["git", "show", f"HEAD:{manifest}"], capture_output=True, check=True,
+).stdout.decode("utf-8")
+
+# A manifest drt cannot have produced is not something to reason about.
+try:
+    json.loads(new_text)
+    json.loads(old_text)
+except ValueError:
+    bail()
+
+new_hits = list(KEY.finditer(new_text))
+old_hits = list(KEY.finditer(old_text))
+if len(new_hits) != 1 or len(old_hits) != 1:
+    bail()
+
+# Put the committed timestamp back into the new file and compare the whole
+# thing. Identical means the value of generated_at was the only difference —
+# not "the diff looked like one line", but literally nothing else moved.
+new, old = new_hits[0], old_hits[0]
+if new.group(2) == old.group(2):
+    bail()
+if new_text[:new.start(2)] + old.group(2) + new_text[new.end(2):] != old_text:
+    bail()
+PY
+  then
+    git checkout -- "$manifest"
+    echo "No-op sync: manifest.json's generated_at was the only change (#48) — reverted, so no PR is opened."
+  fi
+fi
+
 dest_count=$(python -c "import json;print(len(json.load(open('data/destinations.json'))['connectors']))")
 src_count=$(python -c "import json;print(len(json.load(open('data/sources.json'))['connectors']))")
 echo "Synced: ${dest_count} destinations, ${src_count} sources, drt-core $(cat data/version.txt)"
