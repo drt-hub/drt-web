@@ -10,7 +10,14 @@ sidebar_position: 35
 Run post-sync validation tests.
 
 With --dry-run, shows what tests would be executed without actually
-connecting to the destination or running queries.
+connecting to the destination or running queries. With --unit, runs
+sync.unit_tests instead — see that flag's help.
+
+Examples:
+
+```
+drt test --select state:modified --state ci-baseline/manifest.json --dry-run
+```
 
 ## Usage
 
@@ -23,9 +30,11 @@ drt test [OPTIONS]
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `--output`, `-o` | `TEXT` | `text` | Output format: text or json. |
-| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob, tag:&lt;pattern&gt;, destination:&lt;type&gt;, or "*" / "all". Repeat to union. |
+| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob, tag:&lt;pattern&gt;, destination:&lt;type&gt;, state:modified/state:new, or "*" / "all". Repeat to union. |
 | `--exclude` | `TEXT` |  | Subtract syncs from the selection (same grammar as --select). Repeatable. |
+| `--state` | `PATH` |  | Baseline manifest path for state:modified/state:new selectors (for example, a prior `drt docs generate --format json` CI artifact). |
 | `--dry-run` | `BOOLEAN` |  | Preview without running tests. |
 | `--fail-fast` | `BOOLEAN` |  | Stop after the first sync with a failing test; remaining syncs are skipped. |
 | `--store-failures` | `BOOLEAN` |  | Write up to N failing rows per failed test to .drt/test_failures/&lt;sync&gt;/&lt;test&gt;.jsonl (sync.mask applied before write; N set by --store-failures-limit). |
 | `--store-failures-limit` | `INTEGER RANGE` | `10` | Max rows written per failed test when --store-failures is set. |
+| `--unit` | `BOOLEAN` |  | Run sync.unit_tests instead of sync.tests: fixture rows through the transform pipeline, zero credentials, zero network. Mutually exclusive with --dry-run and --store-failures, which are destination-connected concepts unit tests don't have. |

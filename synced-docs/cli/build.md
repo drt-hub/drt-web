@@ -18,6 +18,7 @@ Examples:
 ```
 drt build
 drt build --select tag:crm --fail-fast
+drt build --select state:modified --state ci-baseline/manifest.json --dry-run
 drt build --dry-run
 ```
 
@@ -31,8 +32,9 @@ drt build [OPTIONS]
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob, tag:&lt;pattern&gt;, destination:&lt;type&gt;, or "*" / "all". Repeat to union. |
+| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob, tag:&lt;pattern&gt;, destination:&lt;type&gt;, state:modified/state:new, or "*" / "all". Repeat to union. |
 | `--exclude` | `TEXT` |  | Subtract syncs from the selection (same grammar as --select). Repeatable. |
+| `--state` | `PATH` |  | Baseline manifest path for state:modified/state:new selectors (for example, a prior `drt docs generate --format json` CI artifact). |
 | `--dry-run` | `BOOLEAN` |  | Preview runs and list the test plan without executing. |
 | `--fail-fast` | `BOOLEAN` |  | Stop scheduling after the first failed sync or failed test. |
 | `--quiet`, `-q` | `BOOLEAN` |  | Suppress output except errors. |

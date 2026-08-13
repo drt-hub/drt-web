@@ -23,6 +23,7 @@ drt run --select post_users
 drt run --select 'users_*' --exclude users_backfill
 drt run --select tag:crm --select tag:ads --threads 4
 drt run --select destination:hubspot
+drt run --select state:modified --state ci-baseline/manifest.json --dry-run --diff
 drt run --failed
 drt run --dry-run --diff
 ```
@@ -37,8 +38,9 @@ drt run [OPTIONS]
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob (users_*), tag:&lt;pattern&gt;, destination:&lt;type&gt;, or "*" / "all". Repeat to union. |
+| `--select`, `-s` | `TEXT` |  | Select syncs: name or glob (users_*), tag:&lt;pattern&gt;, destination:&lt;type&gt;, state:modified/state:new, or "*" / "all". Repeat to union. |
 | `--exclude` | `TEXT` |  | Subtract syncs from the selection (same grammar as --select). Repeatable. |
+| `--state` | `PATH` |  | Baseline manifest path for state:modified/state:new selectors (for example, a prior `drt docs generate --format json` CI artifact). |
 | `--failed` | `BOOLEAN` |  | Re-run only syncs whose last recorded status was not success (intersects with --select/--exclude). Never-run syncs are not included. |
 | `--limit` | `INTEGER` |  | Extract at most N rows per sync — a sampled run for safe first sends. Watermarks do not advance; refused for mirror/replace syncs. |
 | `--vars` | `TEXT` |  | Override project vars for this run, e.g. --vars 'lookback_days: 1, tag: crm'. Takes precedence over DRT_VAR_* and drt_project.yml vars:. |
