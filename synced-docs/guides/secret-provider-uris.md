@@ -8,10 +8,11 @@ YAML, Airflow connections, cron wrappers) duplicates secret-distribution
 logic per orchestrator and breaks rotation the moment it's exported: the
 env snapshot goes stale even though the store itself rotated cleanly.
 
-Any `*_env` field in a profile or destination config can be a
-`scheme://...` URI instead of a plain env var name. drt resolves it from
-the matching provider at connection time — no wrapper script, no
-re-export step.
+A `*_env` field in a profile or destination config can be a
+`scheme://...` URI instead of a plain env var name, on connectors that
+route credential resolution through `resolve_env()`
+(`drt/config/credentials.py`). drt resolves it from the matching
+provider at connection time — no wrapper script, no re-export step.
 
 ## Quick Start
 
@@ -40,6 +41,15 @@ three. A provider URI only gets tried once the other three have all come
 back empty, which is automatic: `aws-sm://prod/drt/snowflake#password`
 doesn't collide with a real env var name or a `secrets.toml` key, so it
 falls through unchanged.
+
+The connector audit for [#965](https://github.com/drt-hub/drt/issues/965)
+fixed direct environment access in the `discord`, `email_smtp`,
+`google_ads`, `google_sheets`, `intercom`, `jira`, `salesforce_bulk`,
+`slack`, `teams`, and `twilio` destinations and the `postgres` and
+`redshift` sources. These now accept provider URIs on their credential
+`*_env` fields just like the connectors that already used `resolve_env()`.
+On an empty destination batch, credential resolution is skipped entirely,
+so a provider URI does not cause a needless Secrets Manager or Vault request.
 
 ## Providers
 
