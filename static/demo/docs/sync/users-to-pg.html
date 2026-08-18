@@ -14,7 +14,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <span class="brand"><span class="logo">d</span>drt docs</span>
-  <span class="project">acme-analytics<br><span class="ver">drt 0.9.0</span></span>
+  <span class="project">acme-analytics<br><span class="ver">drt 0.9.1</span></span>
   <nav class="topnav">
     <a class="navbtn "
        href="../index.html">Overview</a>
@@ -146,11 +146,11 @@
 <span class="normal">17</span>
 <span class="normal">18</span></pre></div></td><td class="code"><div><pre><span></span><span class="c1"># drt docs: inline secrets / PII masked — prefer *_env references</span>
 <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">users_to_pg</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Mirror</span><span class="nv"> </span><span class="s">warehouse</span><span class="nv"> </span><span class="s">users</span><span class="nv"> </span><span class="s">into</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">app</span><span class="nv"> </span><span class="s">database.&quot;</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Mirror</span><span class="nv"> </span><span class="s">warehouse</span><span class="nv"> </span><span class="s">users</span><span class="nv"> </span><span class="s">into</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">app</span><span class="nv"> </span><span class="s">database."</span>
 <span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">core</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pii</span><span class="p p-Indicator">]</span>
 <span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">  </span><span class="no">SELECT id, name, email, created_at</span>
-<span class="w">  </span><span class="no">FROM {{ ref(&#39;users&#39;) }}</span>
+<span class="w">  </span><span class="no">FROM {{ ref('users') }}</span>
 <span class="nt">destination</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres</span>
 <span class="w">  </span><span class="nt">host_env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DEMO_PG_HOST</span>
@@ -161,7 +161,7 @@
 <span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span>
 <span class="w">  </span><span class="nt">cursor_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">created_at</span>
 <span class="w">  </span><span class="nt">mask</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;«</span><span class="nv"> </span><span class="s">redacted</span><span class="nv"> </span><span class="s">»&#39;</span>
+<span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="s">'«</span><span class="nv"> </span><span class="s">redacted</span><span class="nv"> </span><span class="s">»'</span>
 </pre></div></td></tr></table></div>
 </div>
     <button class="expand-btn" type="button">Show all 18 lines</button>
@@ -192,7 +192,7 @@
 </div>
 
     
-    <div class="footer">drt docs · static · drt 0.9.0 · manifest schema v3</div>
+    <div class="footer">drt docs · static · drt 0.9.1 · manifest schema v3</div>
   </main>
 </div>
 <script type="application/json"

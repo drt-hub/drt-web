@@ -14,7 +14,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <span class="brand"><span class="logo">d</span>drt docs</span>
-  <span class="project">acme-analytics<br><span class="ver">drt 0.9.0</span></span>
+  <span class="project">acme-analytics<br><span class="ver">drt 0.9.1</span></span>
   <nav class="topnav">
     <a class="navbtn "
        href="../index.html">Overview</a>
@@ -164,7 +164,7 @@
 <span class="normal">35</span>
 <span class="normal">36</span>
 <span class="normal">37</span></pre></div></td><td class="code"><div><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders_to_pg</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Sync</span><span class="nv"> </span><span class="s">orders,</span><span class="nv"> </span><span class="s">enriched</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">user</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">product</span><span class="nv"> </span><span class="s">lookups.&quot;</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Sync</span><span class="nv"> </span><span class="s">orders,</span><span class="nv"> </span><span class="s">enriched</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">user</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">product</span><span class="nv"> </span><span class="s">lookups."</span>
 <span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">core</span><span class="p p-Indicator">]</span>
 <span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">  </span><span class="no">SELECT</span>
@@ -173,11 +173,11 @@
 <span class="w">    </span><span class="no">o.product_id,</span>
 <span class="w">    </span><span class="no">o.amount,</span>
 <span class="w">    </span><span class="no">CASE</span>
-<span class="w">      </span><span class="no">WHEN o.amount &gt;= 1000 THEN &#39;enterprise&#39;</span>
-<span class="w">      </span><span class="no">WHEN o.amount &gt;= 100  THEN &#39;pro&#39;</span>
-<span class="w">      </span><span class="no">ELSE &#39;starter&#39;</span>
+<span class="w">      </span><span class="no">WHEN o.amount &gt;= 1000 THEN 'enterprise'</span>
+<span class="w">      </span><span class="no">WHEN o.amount &gt;= 100  THEN 'pro'</span>
+<span class="w">      </span><span class="no">ELSE 'starter'</span>
 <span class="w">    </span><span class="no">END AS tier</span>
-<span class="w">  </span><span class="no">FROM {{ ref(&#39;orders&#39;) }} o</span>
+<span class="w">  </span><span class="no">FROM {{ ref('orders') }} o</span>
 <span class="w">  </span><span class="no">WHERE o.updated_at &gt; {{ watermark }}</span>
 <span class="nt">destination</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres</span>
@@ -230,7 +230,7 @@
 </div>
 
     
-    <div class="footer">drt docs · static · drt 0.9.0 · manifest schema v3</div>
+    <div class="footer">drt docs · static · drt 0.9.1 · manifest schema v3</div>
   </main>
 </div>
 <script type="application/json"

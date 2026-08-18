@@ -176,6 +176,44 @@ fixed ceiling).
 [alerts](https://docs.snowflake.com/en/user-guide/alerts) ·
 [Snowpipe Streaming](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/data-load-snowpipe-streaming-overview)*
 
+**2026-08-17 addendum (#975):** the above analysis is about `STREAM` +
+`SYSTEM$STREAM_HAS_DATA()`, and its conclusion stands unchanged for Tier 1
+(the `TASK` `WHEN`-clause pattern) — that's still the right signal there.
+It's *not*, however, the signal `dagster-drt`'s Tier 2 sensor
+(`build_drt_change_sensor()`) ended up using for Snowflake. A stream's
+`HAS_DATA` flag only resets via DML consumption, which a read-only polling
+sensor structurally can't provide (see #855/#856's findings, and the ADR
+0004 amendment) — that part of this section was and remains correct, and is
+exactly why Tier 2 needed a different function rather than reusing this one.
+`SYSTEM$LAST_CHANGE_COMMIT_TIME('<table>')` is that different function:
+verified against a real account to be monotonic, side-effect-free, with no
+`CHANGE_TRACKING`-style prerequisite and no consumption semantics at all —
+a plain read, closer in shape to Delta's `version()` than to this section's
+`STREAM`.
+
+**2026-08-18 addendum (#985):** the previous version of this addendum
+budgeted for the cautious case — whether the call needs an *active*
+warehouse was "unconfirmed by design," since verifying it required
+temporarily widening the smoke role's grant from data access to
+infrastructure control (`OPERATE` on the warehouse), which hadn't been
+judged worth it. It was: the smoke role was granted `OPERATE` on
+`DRT_SMOKE_WH` specifically to settle this, and the live result is
+unambiguous — deliberately `ALTER WAREHOUSE ... SUSPEND`, then calling
+`SYSTEM$LAST_CHANGE_COMMIT_TIME`, then re-checking `SHOW WAREHOUSES`: the
+warehouse stayed `SUSPENDED`. **The call is metadata-only and does not
+require, or trigger `AUTO_RESUME` on, an active warehouse.** This is now a
+hard assertion, not an informational skip, in
+`tests/integration/dwh/test_snowflake_smoke.py::test_snowflake_last_change_commit_time_does_not_require_active_warehouse`
+— a future Snowflake behaviour change would fail that test loudly rather
+than pass unnoticed. Scope note: this is a claim about this one function on
+this one account, not a general "SYSTEM$ functions are metadata-only" rule.
+The remaining real cost for a Tier 2 Snowflake sensor is connection
+overhead, not warehouse compute: `snowflake.connector.connect()` runs a
+full auth handshake on every poll, which is why
+`minimum_interval_seconds=` stays a required argument (see
+`docs/guides/event-driven-syncs.md`).
+*Source: [SYSTEM$LAST_CHANGE_COMMIT_TIME](https://docs.snowflake.com/en/sql-reference/functions/system_last_change_commit_time)*
+
 ### BigQuery
 
 **Preferred: poll the `APPENDS()` table-valued function, cursored on
