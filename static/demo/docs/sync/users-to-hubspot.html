@@ -14,7 +14,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <span class="brand"><span class="logo">d</span>drt docs</span>
-  <span class="project">acme-analytics<br><span class="ver">drt 0.9.0</span></span>
+  <span class="project">acme-analytics<br><span class="ver">drt 0.9.1</span></span>
   <nav class="topnav">
     <a class="navbtn "
        href="../index.html">Overview</a>
@@ -141,9 +141,9 @@
 <span class="normal">12</span>
 <span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><span class="c1"># drt docs: inline secrets / PII masked — prefer *_env references</span>
 <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">users_to_hubspot</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Upsert</span><span class="nv"> </span><span class="s">users</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">HubSpot</span><span class="nv"> </span><span class="s">contacts.&quot;</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Upsert</span><span class="nv"> </span><span class="s">users</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">HubSpot</span><span class="nv"> </span><span class="s">contacts."</span>
 <span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">gtm</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">pii</span><span class="p p-Indicator">]</span>
-<span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref(&#39;crm_contacts&#39;)</span>
+<span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref('crm_contacts')</span>
 <span class="nt">destination</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hubspot</span>
 <span class="w">  </span><span class="nt">object_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">contacts</span>
@@ -151,7 +151,7 @@
 <span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span>
 <span class="w">  </span><span class="nt">cursor_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">updated_at</span>
 <span class="w">  </span><span class="nt">mask</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;«</span><span class="nv"> </span><span class="s">redacted</span><span class="nv"> </span><span class="s">»&#39;</span>
+<span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="s">'«</span><span class="nv"> </span><span class="s">redacted</span><span class="nv"> </span><span class="s">»'</span>
 </pre></div></td></tr></table></div>
 </div>
     <button class="expand-btn" type="button">Show all 13 lines</button>
@@ -182,7 +182,7 @@
 </div>
 
     
-    <div class="footer">drt docs · static · drt 0.9.0 · manifest schema v3</div>
+    <div class="footer">drt docs · static · drt 0.9.1 · manifest schema v3</div>
   </main>
 </div>
 <script type="application/json"

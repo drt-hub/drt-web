@@ -14,7 +14,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <span class="brand"><span class="logo">d</span>drt docs</span>
-  <span class="project">acme-analytics<br><span class="ver">drt 0.9.0</span></span>
+  <span class="project">acme-analytics<br><span class="ver">drt 0.9.1</span></span>
   <nav class="topnav">
     <a class="navbtn "
        href="../index.html">Overview</a>
@@ -139,13 +139,13 @@
 <span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alerts_to_slack</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Post</span><span class="nv"> </span><span class="s">anomaly</span><span class="nv"> </span><span class="s">alerts</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">#alerts.&quot;</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Post</span><span class="nv"> </span><span class="s">anomaly</span><span class="nv"> </span><span class="s">alerts</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">#alerts."</span>
 <span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ops</span><span class="p p-Indicator">]</span>
-<span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref(&#39;anomaly_alerts&#39;)</span>
+<span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref('anomaly_alerts')</span>
 <span class="nt">destination</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">slack</span>
 <span class="w">  </span><span class="nt">webhook_url_env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SLACK_WEBHOOK_URL</span>
-<span class="w">  </span><span class="nt">message_template</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;:rotating_light:</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">row.title</span><span class="nv"> </span><span class="s">}}</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">row.detail</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<span class="w">  </span><span class="nt">message_template</span><span class="p">:</span><span class="w"> </span><span class="s">":rotating_light:</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">row.title</span><span class="nv"> </span><span class="s">}}</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">row.detail</span><span class="nv"> </span><span class="s">}}"</span>
 <span class="nt">sync</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">full</span>
 <span class="w">  </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
@@ -180,7 +180,7 @@
 </div>
 
     
-    <div class="footer">drt docs · static · drt 0.9.0 · manifest schema v3</div>
+    <div class="footer">drt docs · static · drt 0.9.1 · manifest schema v3</div>
   </main>
 </div>
 <script type="application/json"
