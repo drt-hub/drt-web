@@ -36,11 +36,11 @@ Every change — design or content — arrives as a PR a maintainer approves; me
 | `scripts/requirements-cli-docs.txt` | Pinned renderers (`click`, `typer`) shared by the generator and its drift check |
 | `data/` | Generated: `destinations.json`, `sources.json`, `version.txt` (do not edit by hand) |
 | `synced-docs/` | Generated: drt's `docs/` + `README.md`, plus `cli/` from `gen-cli-reference.py` (do not edit by hand) |
-| `index.html` | Static placeholder served until the Docusaurus app lands |
+| `index.html` | No longer served — `deploy.yml`'s fallback if a Docusaurus build is ever unavailable; kept in sync by hand |
 
 ## Status
 
-🚧 Scaffold. The Docusaurus app (landing `src/pages/` + docs theme) is being ported from the [first-pass landing](https://drt-landing-page.netlify.app/). Until then GitHub Pages serves `index.html`. When `package.json` lands, `deploy.yml` switches to the Docusaurus build automatically.
+✅ Live. The Docusaurus app (landing `src/pages/` + docs theme) is deployed — `deploy.yml` detects `package.json` and builds it automatically. `index.html` is no longer served; it stays in the repo only as `deploy.yml`'s documented fallback if a Docusaurus build ever fails before `package.json` exists again, and is kept in sync by hand for that reason.
 
 - Hosting: GitHub Pages → `https://drt-hub.github.io/drt-web/` (custom domain `drthub.dev` can be attached later — then set Docusaurus `baseUrl` from `/drt-web/` to `/`).
 

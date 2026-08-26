@@ -78,13 +78,13 @@ export default function Home(): React.ReactElement {
   ];
 
   return (
-    <Layout title="Reverse ETL for the code-first data stack" description="drt is a code-first reverse ETL CLI. Sync warehouse data into the tools your team uses — defined in YAML, run from the terminal, versioned in Git.">
+    <Layout title="Reverse ETL as code — no UI, no lock-in, no per-row bill." description="drt is a self-hosted, code-first reverse ETL CLI — no dashboard, no audience builder, no per-row bill. Sync warehouse data into the tools your team uses, defined in YAML, run from the terminal, versioned in Git.">
       <main className={styles.page}>
         {/* HERO */}
         <Hero
           eyebrow="Reverse ETL · code-first"
-          title={<>Reverse ETL for the <span className={styles.accent}>code-first</span> data stack</>}
-          subtitle="Sync modeled warehouse data back into the tools your team actually uses — REST APIs, Slack, Salesforce, and more. Defined in YAML, run from the terminal, versioned in Git."
+          title={<>Reverse ETL, <span className={styles.accent}>without the dashboard</span></>}
+          subtitle="No UI to babysit, no audience builder duplicating what dbt already does, no hosted runtime billing you per row. Sync modeled warehouse data back into the tools your team actually uses — REST APIs, Slack, Salesforce, and more. Defined in YAML, run from the terminal, versioned in Git."
           primaryCta={{label: <>Get started <Arrow /></>, href: '/#quickstart'}}
           secondaryCta={{
             label: (
