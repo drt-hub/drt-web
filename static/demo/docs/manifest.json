@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
   "drt_version": "0.9.1",
-  "generated_at": "2026-08-24T06:50:46Z",
+  "generated_at": "2026-08-26T11:18:10Z",
   "project": {
     "name": "acme-analytics",
     "profile": "bq_prod"
