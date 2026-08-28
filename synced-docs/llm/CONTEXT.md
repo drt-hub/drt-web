@@ -14,7 +14,7 @@ dlt (load into DWH) → dbt (transform) → drt (activate out of DWH)
 - **Tagline:** "Reverse ETL as code — no UI, no lock-in, no per-row bill."
 - **Install:** `pip install drt-core` or `uv add drt-core`
 - **Package name:** `drt-core` (PyPI) — CLI command is `drt`
-- **Current version:** v0.9.0
+- **Current version:** v0.10.0
 
 ## What drt is NOT
 
@@ -216,6 +216,19 @@ from dagster_drt import build_drt_asset_specs
 specs = build_drt_asset_specs(project_dir=".")
 # Use specs with @multi_asset + PipesClient
 ```
+
+The v0.4 API also includes:
+
+- `build_drt_change_sensor()` for event-driven runs from metadata-only Delta
+  Lake, Iceberg, Snowflake, or SQL Server change signals. Snowflake requires
+  both `watch_table=` and an explicit `minimum_interval_seconds=`; SQL Server
+  requires `watch_table=` to validate table-level Change Tracking.
+- Plain `@op` execution through `DagsterDrtResource.run(context=...,
+  sync_names=[...])`, which emits asset materializations without requiring an
+  `@drt_assets` definition.
+- `DrtEventIterator`, returned by `run()`, with chainable
+  `.fetch_row_count()` source-side verification.
+- `DrtSyncComponent` for declarative `defs.yaml` assets and `dg scaffold defs`.
 
 ## AI Skills for Claude Code
 
