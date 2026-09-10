@@ -114,6 +114,7 @@ default:
 | Linear | `linear` | Create issues via GraphQL API |
 | SendGrid | `sendgrid` | Transactional emails via v3 Mail Send API |
 | Google Ads | `google_ads` | Offline click conversion upload |
+| Meta Conversions | `meta_conversions` | Batched server-side Pixel conversion events |
 | Staged Upload | `staged_upload` | Async bulk APIs: file upload → job trigger → poll |
 | Notion | `notion` | Append rows to Notion databases |
 | Twilio SMS | `twilio` | Send SMS per row via Twilio Messages API |
@@ -155,7 +156,7 @@ drt destinations                  # list available destination connectors
 drt status                        # show recent sync results
 drt status --output json          # JSON output for status
 drt mcp run                       # start MCP server (requires drt-core[mcp])
-drt serve --port 8080             # HTTP webhook endpoint — POST /sync/<name> answers 202 + run id (poll GET /runs/<id>, or ?wait=true for the result); same-sync triggers coalesce, different syncs run concurrently, nothing accepted is dropped (#854). Auth: --auth none|bearer|hmac, applied to every route except GET /health (GET /runs/<id> included; under hmac a GET signs the empty body)
+drt serve --port 8080             # HTTP webhook endpoint — POST /sync/<name> answers 202 + run id (poll GET /runs/<id>, or ?wait=true for the result); same-sync triggers coalesce, different syncs run concurrently, nothing accepted is dropped (#854). Auth: --auth none|bearer|hmac, applied to every route except GET /health (GET /runs/<id> included; under hmac a POST signs its raw body while a GET signs the request path under a derived key, so a signature is bound to one run id and cannot be replayed as a POST, #936)
 drt docs generate                 # static docs site to target/docs/ (html; also --format mermaid|json|dbt-exposures). dbt-exposures prints deterministic ref()-only dbt exposure YAML to stdout (#781). Destination labels are docs-safe by default (#696): object identity (table/channel/sheet/bucket) stays, endpoints/hosts/phones/emails do not
 drt docs generate --full-labels   # verbatim describe() labels + unredacted error text — trusted/internal hosting only (#696/#698)
 drt docs generate --history-depth 20  # recent runs per sync embedded in the manifest from .drt/history (schema v2, #698; default 10, 0 disables, --no-state omits)
@@ -280,7 +281,7 @@ Slash command versions also available in `.claude/commands/` for manual installa
 - Set `sync.mode: mirror`
 - `destination.upsert_key` is **required** (used to identify which rows to DELETE)
 - Supported destinations: Postgres (#596), MySQL (#597), ClickHouse (#598, via `ALTER TABLE ... DELETE` mutation), Snowflake (#599), Databricks (v0.7.9).
-- **`sync.mirror` tuning (v0.7.10, Postgres / MySQL only):** `strategy: tracked` (#686) deletes only rows drt itself previously synced — state kept per sync in a drt-managed `_drt_synced_keys` table in the destination; first run baselines without deleting, lost state re-baselines with a WARN. Safe when the application also writes to the table. `scope: [parent_id]` (#687) restricts deletes to rows whose scope-column values appeared in this run's source (stateless fit for parent+child regeneration). Not combinable yet; other destinations reject both with a clear error.
+- **`sync.mirror` tuning (v0.7.10; expanded v0.8.4 — Postgres, MySQL, Snowflake, ClickHouse, Databricks):** `strategy: tracked` (#686) deletes only rows drt itself previously synced — state kept per sync in a drt-managed `_drt_synced_keys` table in the destination; first run baselines without deleting, lost state re-baselines with a WARN. Safe when the application also writes to the table. `scope: [parent_id]` (#687) restricts deletes to rows whose scope-column values appeared in this run's source (stateless fit for parent+child regeneration). Tracked strategy and scope can be combined on all five mirror destinations.
 - Safety: if the source produces no batches with records, the DELETE is skipped — a transient empty source can't wipe the destination
 - Memory-bound to source key cardinality; for tables larger than a few million rows, the temp-table strategy is a planned follow-up
 

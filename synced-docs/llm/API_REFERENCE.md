@@ -15,14 +15,17 @@ history:                  # optional: sync execution history (#276)
   enabled: true           # default: true — set to false to disable history altogether
   retention_days: 30      # default: 30 — entries older than this are pruned on each append
   max_entries: 500        # default: 500 — remote backends cap entries per sync; local ignores it
-state:                    # optional: persistence backend (#756); see docs/guides/remote-state.md
-  backend: local          # default: local; gcs and s3 are available
+state:                    # optional: persistence backend (#756, #920); see docs/guides/remote-state.md
+  backend: local          # default: local; gcs, s3, and warehouse are available
   # backend: gcs required fields: bucket. optional: prefix.
   # backend: s3 required fields: bucket. optional: prefix, region, aws_profile,
   #   aws_access_key_id_env, aws_secret_access_key_env, aws_session_token_env,
   #   endpoint_url (S3-compatible endpoints — MinIO, R2, etc.).
+  # backend: warehouse required fields: connection_profile (names a profiles.yml
+  #   entry — Postgres only today). See docs/guides/warehouse-state.md.
   # Every field above is rejected when backend is local; bucket is required
-  # for both gcs and s3, and the six S3-only fields are rejected under gcs.
+  # for both gcs and s3, the six S3-only fields are rejected under gcs, and
+  # connection_profile is only valid under warehouse.
 vars:                     # optional: project vars (#783) — reviewed, in-repo defaults
   lookback_days: 7        # referenced as {{ var('lookback_days') }}
   hubspot_pipeline: default
@@ -1063,6 +1066,30 @@ destination:
     token_url: "https://oauth2.googleapis.com/token"
     client_id_env: GOOGLE_ADS_CLIENT_ID
     client_secret_env: GOOGLE_ADS_CLIENT_SECRET
+```
+
+### `type: meta_conversions`
+
+```yaml
+destination:
+  type: meta_conversions
+  pixel_id: "123456789012345"          # required: Meta Pixel/data-source id
+  access_token_env: META_CONVERSIONS_ACCESS_TOKEN
+  api_version: v25.0                    # configurable Graph API version
+  action_source: website               # default: website
+  event_name: Purchase                  # exactly one of fixed/field name
+  # event_name_field: event_name
+  event_time_field: occurred_at         # required: Unix-seconds row field, real transaction time
+  event_id_field: event_id              # required: stable retry dedup id
+  event_source_url_field: page_url
+  email_field: email                    # normalized + SHA-256 → user_data.em[]
+  phone_field: phone                    # digits only + SHA-256 → user_data.ph[]
+  client_ip_address_field: client_ip    # plain text; never hashed
+  client_user_agent_field: user_agent   # plain text; never hashed
+  fbc_field: fbc                        # plain text; never hashed
+  fbp_field: fbp                        # plain text; never hashed
+  value_field: revenue
+  currency: USD
 ```
 
 ---
