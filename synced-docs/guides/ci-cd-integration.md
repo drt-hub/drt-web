@@ -283,6 +283,7 @@ sync:
 | `--limit N` | Sampled run: send at most N rows per sync (watermarks frozen; refused for mirror/replace) |
 | `--threads N` | Parallel execution for faster pipelines |
 | `--log-format json` | Structured logs for log aggregators |
+| `--target-path <dir>` | Where `run_results.json` is written (default `target/drt/`; #778) |
 
 ## Persisting state across ephemeral runs
 
@@ -312,6 +313,78 @@ IAM, S3 configuration, and migration from an existing `.drt/` directory.
 | `1` | One or more syncs failed |
 
 Use exit codes to gate deployments or trigger alerts.
+
+## Run artifacts (`target/drt/run_results.json`)
+
+Every `drt run` invocation also writes `target/drt/run_results.json` — a
+durable, machine-readable record of that invocation, independent of
+`--output` (written even in the default text mode). This is dbt's
+`run_results.json` pattern: `--output json` prints to stdout and vanishes
+with the process, so a CI system that wants to upload a run artifact, or an
+observability pipeline ingesting historical runs, needs a file it can pick
+up after the process exits — not console output it would have to have
+captured live.
+
+The default lives under `target/drt/`, not directly under dbt's own
+`target/`, so that the documented [`dbt run && drt run`](using-with-dbt.md)
+co-located workflow doesn't clobber dbt's own `target/run_results.json`
+with drt's incompatible document of the same name.
+
+```json
+{
+  "schema_version": 1,
+  "invocation": {
+    "run_id": "…",
+    "started_at": "2026-09-19T00:00:00+00:00",
+    "completed_at": "2026-09-19T00:00:12+00:00",
+    "duration_seconds": 12.4,
+    "argv": ["drt", "run", "--select", "users_to_hubspot"],
+    "drt_version": "0.10.0",
+    "exit_code": 0,
+    "succeeded": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": [ /* the same per-sync entries --output json's "syncs" array contains, minus "error" */ ]
+}
+```
+
+`exit_code` disambiguates a genuinely clean no-op (nothing selected, nothing
+changed, nothing previously failed to retry — `succeeded`/`failed`/`skipped`
+all 0, `exit_code` 0) from a rejected invocation (an unmatched selector, an
+invalid `--limit`/`--full-refresh` combination) that also never attempts a
+sync but is not healthy (`exit_code` non-zero) — both would otherwise look
+byte-identical.
+
+Because this file, unlike a console line or `--output json` stdout, is meant
+to be uploaded and retained, it does not carry a failed sync's raw `error`
+text (`error_type`/`error_stage`/`error_suggestion` — an exception class
+name, an enum, a static hint — stay, since a CI consumer's triage need is
+usually satisfied by those alone) or a diff preview's raw
+`delete_preview_unavailable_reason` (replaced with a fixed placeholder,
+distinguishable from a successful delete-preview read). A `--vars` value is
+still redacted outright in `argv`. A pattern-based sweep for arbitrary
+free text turned out to have no reliable fixed point (see
+`drt/_redaction.py`'s docstring), so this project chose not to persist the
+free text at all rather than trust a heuristic to catch every shape of
+secret a connector's own exception might embed.
+
+```yaml
+- run: drt run
+- uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: drt-run-results
+    path: target/drt/run_results.json
+```
+
+Use `--target-path <dir>` to relocate it (default `target/drt/`). Written
+for every invocation that resolves a sync list — including no-op runs where
+nothing was selected, changed, or previously failed — not just a full
+dispatch, and best-effort: a failure to write it (permissions, disk full) is
+logged and never changes the run's own exit code. `results` is exactly the
+same list of per-sync entries `--output json`'s `syncs` array already
+contains — one schema, not a second one to keep in sync.
 
 ## Parsing JSON output
 

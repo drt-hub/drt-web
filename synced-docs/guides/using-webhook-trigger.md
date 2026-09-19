@@ -239,9 +239,44 @@ signature avoids. If you need to poll run state, run a second listener with
 `--auth bearer` for that, or query it from the same process that triggered the
 sync using the run id returned by the 202.
 
-Pub/Sub push authenticates with an **OIDC JWT**, not a body signature — that
-verification path is [#903](https://github.com/drt-hub/drt/issues/903), and until it lands Pub/Sub still needs
-a verifying proxy in front.
+### Pub/Sub push OIDC JWT
+
+```bash
+pip install "drt-core[serve-oidc]"
+drt serve --auth oidc \
+  --oidc-audience https://your-drt-host/sync/sync_users \
+  --oidc-email push-invoker@your-project.iam.gserviceaccount.com
+```
+
+Pub/Sub push authenticates with an **OIDC JWT** in the `Authorization: Bearer
+<token>` header, not a body signature — verified against Google's rotating
+public keys via `google-auth` (`drt-core[serve-oidc]`, kept out of core to
+avoid forcing the dependency on every deployment). This is Google-specific,
+not a generic OIDC verifier: it fetches certs only from Google's own
+endpoint and validates `iss` against Google's own accepted values
+internally (both `accounts.google.com` and `https://accounts.google.com`
+are legitimate) — a non-Google issuer's token would fail signature
+verification outright, so there's no issuer override for another IdP:
+
+- **`--oidc-audience`** (required) must match the audience the push
+  subscription was configured with — usually the exact `POST` URL Pub/Sub
+  delivers to.
+- **`--oidc-email`** (required) names the one service account allowed to call
+  this endpoint — the push subscription's own invoker identity. A valid
+  signature and the right audience alone are **not** proof of authorization:
+  Google will mint a token with any audience for any Google Cloud principal
+  who asks (e.g. `gcloud auth print-identity-token --audiences=<anything>`),
+  so without an explicit expected caller, this endpoint would accept a
+  request from anyone with a Google Cloud identity, not just your own Pub/Sub
+  subscription. The token must also carry `email_verified: true` for the
+  `email` claim to count — matching Google's own [authenticated-push
+  guidance](https://docs.cloud.google.com/pubsub/docs/authenticate-push-subscriptions),
+  since `email` alone only says who the token *claims* to be, not that
+  Google vouches for it.
+
+Unlike `hmac`, a `GET` is verified exactly the same way as a `POST` — the JWT
+signs itself independent of the request it's attached to, so there's no
+GET/POST asymmetry to account for.
 
 ## Use cases
 
