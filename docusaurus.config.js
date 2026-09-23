@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const {themes} = require('prism-react-renderer');
 
+const ga4MeasurementId = process.env.GA4_MEASUREMENT_ID;
+
 // --- Build-time fallback (overridden by generated data/*.json once the
 // sync-from-drt PR lands). This is NOT a hand-maintained canonical list —
 // data/destinations.json / data/sources.json always win when present. ---
@@ -64,6 +66,10 @@ const config = {
   organizationName: 'drt-hub',
   projectName: 'drt-web',
   trailingSlash: false,
+
+  customFields: {
+    analyticsEnabled: Boolean(ga4MeasurementId),
+  },
 
   // A broken link fails the build rather than logging. Safe to turn on now
   // because a full build emits zero of them, so this cannot bite retroactively
@@ -136,6 +142,7 @@ const config = {
   ],
 
   presets: [
+    ...(ga4MeasurementId ? ['./presets/analytics-consent'] : []),
     [
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
@@ -143,9 +150,9 @@ const config = {
         // Docs from synced-docs/ arrive in a follow-up PR (modular: hero first).
         docs: false,
         blog: false,
-        gtag: process.env.GA4_MEASUREMENT_ID
+        gtag: ga4MeasurementId
           ? {
-              trackingID: process.env.GA4_MEASUREMENT_ID || '',
+              trackingID: ga4MeasurementId,
               anonymizeIP: true,
             }
           : false,
