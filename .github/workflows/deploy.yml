@@ -32,6 +32,8 @@ jobs:
           cache: npm
 
       - name: Build
+        env:
+          GA4_MEASUREMENT_ID: ${{ secrets.GA4_MEASUREMENT_ID }}
         run: |
           if [ -f package.json ]; then
             echo "Docusaurus detected — building to ./build"

@@ -143,6 +143,12 @@ const config = {
         // Docs from synced-docs/ arrive in a follow-up PR (modular: hero first).
         docs: false,
         blog: false,
+        gtag: process.env.GA4_MEASUREMENT_ID
+          ? {
+              trackingID: process.env.GA4_MEASUREMENT_ID || '',
+              anonymizeIP: true,
+            }
+          : false,
         theme: {
           customCss: './src/css/custom.css',
         },
