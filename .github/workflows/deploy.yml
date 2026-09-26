@@ -38,6 +38,7 @@ jobs:
           if [ -f package.json ]; then
             echo "Docusaurus detected — building to ./build"
             npm ci
+            npm test
             npm run build
             echo "ARTIFACT=build" >> "$GITHUB_ENV"
           else

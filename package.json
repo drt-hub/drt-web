@@ -9,7 +9,8 @@
     "build": "docusaurus build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "test": "node --test tests/demo-analytics.test.js"
   },
   "dependencies": {
     "@docusaurus/core": "^3.10.2",

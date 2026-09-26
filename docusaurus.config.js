@@ -117,6 +117,13 @@ const config = {
 
   plugins: [
     drtSsotPlugin,
+    // The live demo is generated HTML copied from static/demo/docs/. It bypasses
+    // the React root where the normal consent banner lives, so instrument the
+    // built copy when GA4 is enabled rather than baking a measurement ID into
+    // the tracked demo source.
+    ...(ga4MeasurementId
+      ? [[require.resolve('./plugins/demo-analytics'), {measurementId: ga4MeasurementId}]]
+      : []),
     // CLI reference — generated into synced-docs/cli/ by the sync workflow.
     // A scoped docs instance rather than the classic preset's `docs`, which
     // stays false until the rest of synced-docs/ is wired up separately.
