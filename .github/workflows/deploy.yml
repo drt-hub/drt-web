@@ -33,7 +33,10 @@ jobs:
 
       - name: Build
         env:
-          GA4_MEASUREMENT_ID: ${{ secrets.GA4_MEASUREMENT_ID }}
+          # Fork PRs cannot access repository secrets. A public test ID keeps
+          # the GA4 and consent-mode build path covered without exposing the
+          # production analytics property.
+          GA4_MEASUREMENT_ID: ${{ github.event_name == 'pull_request' && 'G-TESTTESTTEST' || secrets.GA4_MEASUREMENT_ID }}
         run: |
           if [ -f package.json ]; then
             echo "Docusaurus detected — building to ./build"
