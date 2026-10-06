@@ -35,6 +35,10 @@ drt serve [OPTIONS]
 | `--host` | `TEXT` | `127.0.0.1` | Host to bind. |
 | `--port`, `-p` | `INTEGER` | `8080` | Port to bind. |
 | `--token-env` | `TEXT` | `DRT_WEBHOOK_TOKEN` | Env var holding bearer token for auth. Empty/unset = no auth. |
-| `--auth` | `TEXT` | `auto` | Auth scheme: auto (bearer if token env set, else none), none, bearer, or hmac (HMAC-SHA256 body signature). |
+| `--auth` | `TEXT` | `auto` | Auth scheme: auto (bearer if token env set, else none), none, bearer, hmac (HMAC-SHA256 body signature), or oidc (Google-signed OIDC JWT — Pub/Sub push's own scheme). |
 | `--hmac-secret-env` | `TEXT` | `DRT_WEBHOOK_HMAC_SECRET` | Env var holding the HMAC signing secret (for --auth hmac). |
-| `--hmac-header` | `TEXT` | `X-Hub-Signature-256` | Header carrying the HMAC signature (for --auth hmac). |
+| `--hmac-header` | `TEXT` | `` | Header carrying the HMAC signature (for --auth hmac). Defaults to X-Hub-Signature-256, or Stripe-Signature under --hmac-scheme stripe. |
+| `--hmac-scheme` | `TEXT` | `generic` | Signature shape for --auth hmac: generic (HMAC of the body — GitHub, Shopify, bare hex) or stripe (timestamped t=...,v1=...). |
+| `--hmac-tolerance` | `INTEGER` | `300` | Replay window in seconds for --hmac-scheme stripe. Stripe's own libraries default to 300. |
+| `--oidc-audience` | `TEXT` | `` | Required for --auth oidc: the URL Pub/Sub's push subscription was configured with (the aud claim Google's JWT must carry). |
+| `--oidc-email` | `TEXT` | `` | Required for --auth oidc: the one service account's email allowed to call this endpoint (e.g. the Pub/Sub subscription's own push service account). A valid signature and audience alone do not prove authorization -- Google will mint a token with any audience for any Google Cloud principal. |
