@@ -20,4 +20,4 @@ drt docs [OPTIONS] COMMAND [ARGS]...
 | Command | Description |
 | --- | --- |
 | [`generate`](docs-generate.md) | Generate the project's sync catalog or an integration artifact. |
-| [`serve`](docs-serve.md) | Live Web UI for the sync catalog (scheduled for v0.8.x — epic #499). |
+| [`serve`](docs-serve.md) | Live Web UI for the sync catalog (not implemented — epic #499). |

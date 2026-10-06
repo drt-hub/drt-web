@@ -96,6 +96,11 @@
       "kind": "destination"
     },
     {
+      "type": "meta_conversions",
+      "display_name": "Meta Conversions",
+      "kind": "destination"
+    },
+    {
       "type": "mixpanel",
       "display_name": "Mixpanel",
       "kind": "destination"

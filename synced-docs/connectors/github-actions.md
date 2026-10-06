@@ -68,3 +68,7 @@ destination:
 - Core connector — no `pip install` extras needed.
 - One workflow-dispatch call per row; `inputs_template` keys must match the workflow's declared `inputs:`.
 - Useful for activation patterns where a warehouse row should kick off a deploy / backfill / notification pipeline.
+- A successful dispatch confirms that GitHub accepted the request, not that the
+  workflow finished. For incremental syncs, use a
+  [reconciliation sync](../guides/reconciliation-syncs.md) when missed
+  downstream work must be recovered.

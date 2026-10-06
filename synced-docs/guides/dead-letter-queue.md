@@ -129,6 +129,8 @@ records what it receives) can't dedupe a replay — there, treat a re-send as
 ## See also
 
 - [Retry policy](retry.md) — in-run backoff for transient HTTP failures
+- [Reconciliation syncs](reconciliation-syncs.md) — recover expected downstream
+  work that never completed and therefore never entered the DLQ
 - [Field mappings](field-mappings.md) — what "post-mapping record" means
 - [Sync history](sync-history.md) — per-run success/fail history
 - [Remote state on GCS or S3](remote-state.md) — keep the DLQ across ephemeral runs
