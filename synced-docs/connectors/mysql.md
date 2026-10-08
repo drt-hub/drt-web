@@ -75,6 +75,47 @@ Use `json_columns` to **override** introspection with an explicit allowlist — 
 json_columns: [preferences, metadata]
 ```
 
+**Match policy (`match_policy`, [#757](https://github.com/drt-hub/drt/issues/757)) — only-update / only-create:**
+
+```yaml
+sync:
+  mode: upsert
+  match_policy: update_only   # upsert (default) | update_only | create_only
+destination:
+  type: mysql
+  table: crm.contacts
+  upsert_key: [tenant_id, contact_id]
+```
+
+The default `upsert` policy inserts missing rows and updates existing rows.
+`match_policy` can narrow that behavior when either half would be harmful:
+
+- **`update_only`** emits `UPDATE ... SET ... WHERE <upsert_key>`, so a row
+  missing from MySQL is skipped instead of inserted. It requires at least one
+  non-key column and `SELECT` access to the target: MySQL reports rows changed,
+  not rows matched, so drt performs a key-existence probe only when an UPDATE
+  reports zero. That keeps an existing row whose values were already identical
+  classified as a success rather than a false no-match.
+- **`create_only`** uses a normal `INSERT`. Because MySQL uses the same `1062`
+  response for every PRIMARY or UNIQUE constraint, drt verifies a duplicate
+  against the configured `upsert_key`: an existing match is counted as skipped,
+  while a collision on some other unique constraint remains a normal row error.
+  drt deliberately does not use `INSERT IGNORE`, because MySQL can turn invalid
+  values into warnings and insert coerced data, and it does not use a no-op
+  `ON DUPLICATE KEY UPDATE`, because that would activate UPDATE triggers on rows
+  promised to remain untouched.
+  `create_only` also assumes `upsert_key` is backed by a PRIMARY or UNIQUE index:
+  without one MySQL raises no `1062`, so the plain `INSERT` would add the duplicate
+  row (the same assumption the default `upsert` already makes via
+  `ON DUPLICATE KEY UPDATE`).
+
+Both policies require a non-empty `upsert_key` and `SELECT` access to the target
+table (the probes run only for ambiguous zero-row updates or duplicate inserts).
+Policy-declined rows increment `SyncResult.skipped` and its `skipped_no_match`
+breakdown; they are not errors. The policies compose with field mappings, masks,
+and lookups, but are rejected for `mode: replace` and `mode: mirror`, whose write
+semantics are incompatible.
+
 **Replace mode (TRUNCATE + INSERT):**
 ```yaml
 sync:
