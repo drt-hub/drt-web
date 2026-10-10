@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "created_at": {
+      "type": "string"
+    },
+    "destination": {
+      "type": "string"
+    },
+    "digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "drt_version": {
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "create",
+              "insert",
+              "update",
+              "replace",
+              "delete"
+            ]
+          },
+          "changed_columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "delete_reason": {
+            "type": "string"
+          },
+          "key": {
+            "type": "object"
+          },
+          "value_hash": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "action"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "fingerprints": {
+      "properties": {
+        "config_hash": {
+          "type": "string"
+        },
+        "cursor_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "environment_hash": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "config_hash",
+        "environment_hash",
+        "cursor_hash"
+      ],
+      "type": "object"
+    },
+    "guards": {
+      "properties": {
+        "configured": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "tripped": {
+          "items": {
+            "properties": {
+              "guard": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "number"
+              },
+              "message": {
+                "type": "string"
+              },
+              "observed": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "guard",
+              "limit",
+              "observed",
+              "message"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "configured",
+        "tripped"
+      ],
+      "type": "object"
+    },
+    "options": {
+      "properties": {
+        "key_id": {
+          "type": "string"
+        },
+        "redact_keys": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "redact_keys",
+        "key_id"
+      ],
+      "type": "object"
+    },
+    "plan_id": {
+      "pattern": "^plan-[0-9a-f]{16}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "seal": {
+      "pattern": "^hmac-sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "status": {
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "available",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "summary": {
+      "properties": {
+        "create": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "delete": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "insert": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "kept_values": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "replace": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "total_destination_rows": {
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "total_source_rows": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "update": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "create",
+        "insert",
+        "update",
+        "replace",
+        "delete",
+        "total_source_rows",
+        "total_destination_rows"
+      ],
+      "type": "object"
+    },
+    "sync": {
+      "properties": {
+        "match_policy": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "mode",
+        "match_policy"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "plan_id",
+    "created_at",
+    "drt_version",
+    "sync",
+    "destination",
+    "options",
+    "fingerprints",
+    "status",
+    "summary",
+    "guards",
+    "digest",
+    "seal",
+    "entries"
+  ],
+  "title": "drt plan",
+  "type": "object"
+}

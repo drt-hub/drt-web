@@ -166,6 +166,9 @@ drt test --select <name>    # test a specific sync
 drt test --store-failures   # sample up to N failing rows per failed test (masked)
 drt build                   # run each sync and its tests in one pass
 drt validate                # validate sync YAML configs
+drt plan <sync> --out plan.json   # save a reviewable change set (read-only)
+drt apply plan.json         # apply it only if the world still matches
+drt deploy github-actions --with-plan   # PR comment with the plan; apply on merge
 drt status                  # show recent sync status
 drt status --output json    # JSON output for status
 drt profile list            # list credential profiles in ~/.drt/profiles.yml
@@ -271,6 +274,8 @@ drt mcp run
 | `drt_doctor`          | Environment diagnostics (mirrors `drt doctor`)                                        |
 | `drt_state_show`      | Stored watermark + last-run state                                                     |
 | `drt_state_reset`     | Reset watermark / run state / tracked-mirror keys                                     |
+| `drt_plan`            | Read-only change set for a sync + a `plan_id` (mirrors `drt plan`)                    |
+| `drt_apply`           | Apply a fetched plan only if the world still matches; needs `approved_by` (`drt apply`) |
 
 ---
 
@@ -296,6 +301,7 @@ Copy the files from `.claude/commands/` into your drt project's `.claude/command
 | ------------------ | --------------------- | ------------------------------------------ |
 | `/drt-create-sync`  | "create a sync"        | Generates valid sync YAML from your intent       |
 | `/drt-debug`        | "sync failed"          | Diagnoses a specific error and suggests fixes    |
+| `/drt-review-sync`  | "what will this change?" | Plans a sync, explains it, applies only after human approval |
 | `/drt-troubleshoot` | "drt isn't working"    | Walks a full top-to-bottom diagnostic checklist  |
 | `/drt-init`         | "set up drt"           | Guides through project initialization            |
 | `/drt-migrate`      | "migrate from Census"  | Converts existing configs to drt YAML            |
