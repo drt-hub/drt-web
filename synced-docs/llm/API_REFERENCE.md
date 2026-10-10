@@ -397,6 +397,50 @@ tests:                      # optional: post-sync validation (DB destinations on
     severity: warn                    # optional on every type: "warn" | "error" (default)
 ```
 
+### Write policy (`sync.write_policy`, #1238)
+
+`write_policy: fill_empty` writes a column only when the destination's value is
+NULL, an empty string or only spaces; an existing value is never replaced (new rows
+are inserted in full). `write_policy_overrides` sets one column the other way. A
+non-text column is empty only when NULL; a stored `0` is a value. Supported on
+**PostgreSQL and MySQL** (upsert and `update_only`) and **Snowflake** (the upsert
+`MERGE` path, including mirror; Snowflake does not support `update_only`); other
+destinations fail fast.
+Rejected for `mode: replace`. A name in `write_policy_overrides` that is not a
+column of the destination table is an error (nothing written; needs introspection),
+and plan/diff report it as unavailable when the source does not produce it. `--dry-run --diff` and `drt plan` count
+the kept values (`kept_values`).
+
+```yaml
+sync:
+  mode: upsert
+  write_policy: fill_empty
+  write_policy_overrides:
+    lifecycle_stage: overwrite
+```
+
+### Change guards (`sync.guards`, #1218)
+
+Limits on how much one run may change. They are evaluated against the change set
+`drt plan` computes: `drt plan` reports a trip (exit code unchanged) and
+`drt apply` refuses to write (`--force-guards` overrides and is recorded in
+`run_results.json`). `drt run` does not enforce them yet. Unknown keys are
+rejected, so a typo cannot silently disable a guard.
+
+```yaml
+sync:
+  mode: mirror
+  guards:
+    max_creates: 10000     # rows to create (incl. append-only inserts)
+    max_deletes: 500       # rows to delete (mirror / replace)
+    max_delete_pct: 10     # deletes as % of the rows the delete pass looked at
+    max_updates_pct: 50    # updates as % of source rows
+```
+
+A percentage that cannot be evaluated (a delete strategy that does not report
+how many rows it looked at, such as `strategy: diff`) trips the guard instead of
+passing; use `max_deletes` there.
+
 ### Snapshot-diff incremental and diff mirror (#755/#1110)
 
 `incremental_strategy: diff` is for curated models that have no reliable
