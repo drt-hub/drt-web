@@ -19,6 +19,7 @@ drt [OPTIONS] COMMAND [ARGS]...
 
 | Command | Description |
 | --- | --- |
+| [`apply`](apply.md) | Apply a plan only if recomputing it gives the same change set. |
 | [`build`](build.md) | Run sync(s) and their tests in one invocation (sequential). |
 | [`clean`](clean.md) | Clean up orphan __drt_swap shadow tables left by interrupted swaps. |
 | [`cloud`](cloud.md) | drt Cloud commands (stub). |
@@ -32,6 +33,7 @@ drt [OPTIONS] COMMAND [ARGS]...
 | [`init`](init.md) | Initialize a new drt project in the current directory. |
 | [`list`](list.md) | List all sync definitions in the project. |
 | [`mcp`](mcp.md) | MCP server commands. |
+| [`plan`](plan.md) | Compute what a sync *would* change, as a reviewable artifact. |
 | [`plugins`](plugins.md) | Inspect installed drt plugins (entry-point extensions). |
 | [`profile`](profile.md) | Manage source credential profiles in ~/.drt/profiles.yml. |
 | [`retry`](retry.md) | Replay failed records from a sync's Dead Letter Queue. |
