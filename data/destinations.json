@@ -156,6 +156,11 @@
       "kind": "destination"
     },
     {
+      "type": "sqs",
+      "display_name": "Amazon SQS",
+      "kind": "destination"
+    },
+    {
       "type": "staged_upload",
       "display_name": "Staged Upload",
       "kind": "destination"
