@@ -121,6 +121,11 @@
       "kind": "destination"
     },
     {
+      "type": "pipedrive",
+      "display_name": "Pipedrive",
+      "kind": "destination"
+    },
+    {
       "type": "postgres",
       "display_name": "PostgreSQL",
       "kind": "destination"
@@ -153,6 +158,11 @@
     {
       "type": "snowflake",
       "display_name": "Snowflake",
+      "kind": "destination"
+    },
+    {
+      "type": "sqs",
+      "display_name": "Amazon SQS",
       "kind": "destination"
     },
     {
