@@ -10,6 +10,7 @@ The site is a **view** of `drt-hub/drt`, never a hand-maintained copy:
 
 - **Connector matrix** is generated from drt's own CLI (`drt destinations|sources --format json`) → `data/`.
 - **Docs** are pulled from drt's `docs/` + `README.md` → `synced-docs/`.
+  They are published as scoped docs instances: `/guides`, `/connectors`, `/adr`, `/migration` (and the generated `/cli`). Cross-folder links are rewritten at build time by `plugins/remark-drt-links.js` (site route when the target folder is published, GitHub URL otherwise); `onBrokenLinks: 'throw'` still guards the build.
 - **Version badge** is read live from PyPI (`drt-core`).
 
 These generated inputs are refreshed by `.github/workflows/sync-from-drt.yml` (weekly + on-demand + on a `drt-updated` dispatch from the drt repo). The sync **opens a PR** — nothing deploys until a maintainer reviews and merges it.

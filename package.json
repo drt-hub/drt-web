@@ -10,7 +10,7 @@
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "typecheck": "tsc",
-    "test": "node --test tests/demo-analytics.test.js"
+    "test": "node --test tests/demo-analytics.test.js tests/remark-drt-links.test.js"
   },
   "dependencies": {
     "@docusaurus/core": "^3.10.2",

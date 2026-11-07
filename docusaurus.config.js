@@ -1,6 +1,22 @@
 // @ts-check
 const fs = require('fs');
 const path = require('path');
+
+const remarkDrtLinks = require('./plugins/remark-drt-links');
+
+// Folders of drt's docs/ that this site publishes (each is its own docs instance).
+// The CLI reference (synced-docs/cli) has its own, generated instance below.
+const DRT_DOC_SECTIONS = [
+  // `landing` is the page a navbar/footer link opens: a docs instance has no index page of
+  // its own (drt's docs/ folders carry no README), so each section opens on a chosen page.
+  {id: 'guides', label: 'Guides', landing: '/guides/plan'},
+  {id: 'connectors', label: 'Connectors', landing: '/connectors/postgres'},
+  {id: 'adr', label: 'Design records', landing: '/adr/0001-drt-docs-manifest'},
+  {id: 'migration', label: 'Migration', landing: '/migration/v0.x-to-v1.0'},
+].filter(({id}) => fs.existsSync(path.join(__dirname, 'synced-docs', id)));
+const SYNCED_DOCS_ROOT = path.join(__dirname, 'synced-docs');
+const DRT_PUBLISHED_FOLDERS = [...DRT_DOC_SECTIONS.map(({id}) => id), 'cli'];
+
 const {themes} = require('prism-react-renderer');
 
 const ga4MeasurementId = process.env.GA4_MEASUREMENT_ID;
@@ -124,6 +140,27 @@ const config = {
     ...(ga4MeasurementId
       ? [[require.resolve('./plugins/demo-analytics'), {measurementId: ga4MeasurementId}]]
       : []),
+    // drt's own docs, synced from drt-hub/drt (#95). One scoped docs instance per
+    // published folder: a single instance over synced-docs/ would overlap the CLI
+    // reference's directory, which Docusaurus does not allow. Cross-folder links are
+    // rewritten by plugins/remark-drt-links.js (site route, or the GitHub URL for
+    // anything that is not published here).
+    ...DRT_DOC_SECTIONS.map(({id, label}) => [
+      '@docusaurus/plugin-content-docs',
+      {
+        id,
+        path: `synced-docs/${id}`,
+        routeBasePath: id,
+        sidebarPath: './sidebars-docs.js',
+        sidebarCollapsed: false,
+        // ADR files are named 0016-...; keep the number in the route (the default
+        // parser would strip it and make /adr/... URLs differ from the file names).
+        numberPrefixParser: false,
+        editUrl: undefined,
+        breadcrumbs: true,
+        beforeDefaultRemarkPlugins: [[remarkDrtLinks, {root: SYNCED_DOCS_ROOT, published: DRT_PUBLISHED_FOLDERS}]],
+      },
+    ]),
     // CLI reference — generated into synced-docs/cli/ by the sync workflow.
     // A scoped docs instance rather than the classic preset's `docs`, which
     // stays false until the rest of synced-docs/ is wired up separately.
@@ -154,7 +191,8 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        // Docs from synced-docs/ arrive in a follow-up PR (modular: hero first).
+        // The classic preset's own `docs` stays off: drt's docs are published as scoped
+        // instances (guides, connectors, adr, migration, cli) in `plugins` below.
         docs: false,
         blog: false,
         gtag: ga4MeasurementId
@@ -194,6 +232,18 @@ const config = {
           {href: 'pathname:///#connectors', label: 'Connectors', position: 'left', target: '_self'},
           {href: 'pathname:///#quickstart', label: 'Quickstart', position: 'left', target: '_self'},
           {href: 'pathname:///demo/docs/', label: 'Live demo', position: 'left'},
+          // Docs synced from drt-hub/drt (#95). A dropdown of `to:` links (they point at
+          // Markdown routes, so the anchor checker is happy, unlike the React-page anchors
+          // above). Each section opens on its first page.
+          {
+            type: 'dropdown',
+            label: 'Docs',
+            position: 'left',
+            items: [
+              ...DRT_DOC_SECTIONS.map(({label, landing}) => ({label, to: landing})),
+              ...(fs.existsSync(path.join(__dirname, 'synced-docs/cli')) ? [{label: 'CLI reference', to: '/cli/apply'}] : []),
+            ],
+          },
           {href: 'https://pypi.org/project/drt-core/', label: 'PyPI', position: 'right'},
           {href: 'https://github.com/drt-hub/drt', label: 'GitHub', position: 'right'},
         ],
@@ -207,6 +257,7 @@ const config = {
               {label: 'Why drt', href: 'pathname:///#why', target: '_self'},
               {label: 'Connectors', href: 'pathname:///#connectors', target: '_self'},
               {label: 'Quickstart', href: 'pathname:///#quickstart', target: '_self'},
+              ...(DRT_DOC_SECTIONS.length ? [{label: 'Docs', to: DRT_DOC_SECTIONS[0].landing}] : []),
               {label: 'PyPI', href: 'https://pypi.org/project/drt-core/'},
             ],
           },
