@@ -7,12 +7,10 @@ const remarkDrtLinks = require('./plugins/remark-drt-links');
 // Folders of drt's docs/ that this site publishes (each is its own docs instance).
 // The CLI reference (synced-docs/cli) has its own, generated instance below.
 const DRT_DOC_SECTIONS = [
-  // `landing` is the page a navbar/footer link opens: a docs instance has no index page of
-  // its own (drt's docs/ folders carry no README), so each section opens on a chosen page.
-  {id: 'guides', label: 'Guides', landing: '/guides/plan'},
-  {id: 'connectors', label: 'Connectors', landing: '/connectors/postgres'},
-  {id: 'adr', label: 'Design records', landing: '/adr/0001-drt-docs-manifest'},
-  {id: 'migration', label: 'Migration', landing: '/migration/v0.x-to-v1.0'},
+  {id: 'guides', label: 'Guides'},
+  {id: 'connectors', label: 'Connectors'},
+  {id: 'adr', label: 'Design records'},
+  {id: 'migration', label: 'Migration'},
 ].filter(({id}) => fs.existsSync(path.join(__dirname, 'synced-docs', id)));
 const SYNCED_DOCS_ROOT = path.join(__dirname, 'synced-docs');
 const DRT_PUBLISHED_FOLDERS = [...DRT_DOC_SECTIONS.map(({id}) => id), 'cli'];
@@ -131,6 +129,29 @@ const config = {
     hooks: {onBrokenMarkdownLinks: 'warn'},
   },
 
+  // Local full-text search over the published docs (no external service, built into the
+  // static site). Index every docs instance: guides, connectors, adr, migration, cli.
+  themes: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      ({
+        hashed: true,
+        language: ['en'],
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: false,
+        docsRouteBasePath: [...DRT_DOC_SECTIONS.map(({id}) => id), 'cli'],
+        docsDir: [...DRT_DOC_SECTIONS.map(({id}) => `synced-docs/${id}`), 'synced-docs/cli'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        searchBarShortcutHint: true,
+        // The search bar reads a docs plugin's version data; the classic preset's default
+        // instance is off here, so point it at one of the scoped instances.
+        docsPluginIdForPreferredVersion: DRT_DOC_SECTIONS[0].id,
+      }),
+    ],
+  ],
+
   plugins: [
     drtSsotPlugin,
     // The live demo is generated HTML copied from static/demo/docs/. It bypasses
@@ -151,7 +172,7 @@ const config = {
         id,
         path: `synced-docs/${id}`,
         routeBasePath: id,
-        sidebarPath: './sidebars-docs.js',
+        sidebarPath: `./sidebars/${id}.js`,
         sidebarCollapsed: false,
         // ADR files are named 0016-...; keep the number in the route (the default
         // parser would strip it and make /adr/... URLs differ from the file names).
@@ -240,7 +261,7 @@ const config = {
             label: 'Docs',
             position: 'left',
             items: [
-              ...DRT_DOC_SECTIONS.map(({label, landing}) => ({label, to: landing})),
+              ...DRT_DOC_SECTIONS.map(({id, label}) => ({label, to: `/${id}/`})),
               ...(fs.existsSync(path.join(__dirname, 'synced-docs/cli')) ? [{label: 'CLI reference', to: '/cli/apply'}] : []),
             ],
           },
@@ -257,7 +278,7 @@ const config = {
               {label: 'Why drt', href: 'pathname:///#why', target: '_self'},
               {label: 'Connectors', href: 'pathname:///#connectors', target: '_self'},
               {label: 'Quickstart', href: 'pathname:///#quickstart', target: '_self'},
-              ...(DRT_DOC_SECTIONS.length ? [{label: 'Docs', to: DRT_DOC_SECTIONS[0].landing}] : []),
+              ...(DRT_DOC_SECTIONS.length ? [{label: 'Docs', to: `/${DRT_DOC_SECTIONS[0].id}/`}] : []),
               {label: 'PyPI', href: 'https://pypi.org/project/drt-core/'},
             ],
           },

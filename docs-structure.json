@@ -1,0 +1,190 @@
+{
+  "guides": {
+    "title": "Guides",
+    "intro": "How to review, protect and operate a drt project. Start with plan and apply, then the schema and reliability pages you need.",
+    "groups": [
+      {
+        "label": "Review before you write",
+        "blurb": "See what a sync will change, approve it, then apply exactly that.",
+        "items": [
+          "plan",
+          "plan-coverage",
+          "dry-run-and-diff",
+          "write-policy",
+          "reconciliation-syncs",
+          "ci-cd-integration",
+          "scheduling"
+        ]
+      },
+      {
+        "label": "Schema and contracts",
+        "blurb": "Declare what a model must return, shape the rows, let drt create the table.",
+        "items": [
+          "column-contracts",
+          "managed-destination-tables",
+          "field-mappings",
+          "computed-fields",
+          "metadata-columns",
+          "pii-masking"
+        ]
+      },
+      {
+        "label": "State and reliability",
+        "blurb": "What drt remembers, how it retries, and how it tells you when something stops.",
+        "items": [
+          "remote-state",
+          "warehouse-state",
+          "sync-history",
+          "retry",
+          "rate-limiting",
+          "dead-letter-queue",
+          "graceful-shutdown",
+          "alerts"
+        ]
+      },
+      {
+        "label": "Selection and triggers",
+        "blurb": "Choose what runs, run it on events, test it offline.",
+        "items": [
+          "state-modified-selector",
+          "event-driven-syncs",
+          "using-webhook-trigger",
+          "destination-lookup",
+          "sync-unit-tests"
+        ]
+      },
+      {
+        "label": "Secrets",
+        "blurb": "Keep credentials out of YAML.",
+        "items": [
+          "secrets-encryption",
+          "secret-provider-uris"
+        ]
+      },
+      {
+        "label": "Use drt with",
+        "blurb": "dbt, Airflow and Prefect.",
+        "items": [
+          "using-with-dbt",
+          "using-with-airflow",
+          "using-with-prefect"
+        ]
+      },
+      {
+        "label": "Extend drt",
+        "blurb": "Write a connector or a plugin.",
+        "items": [
+          "plugins",
+          "building-a-destination",
+          "building-a-source"
+        ]
+      },
+      {
+        "label": "Background",
+        "blurb": "How drt compares with other reverse ETL tools.",
+        "items": [
+          "comparison"
+        ]
+      }
+    ]
+  },
+  "connectors": {
+    "title": "Connectors",
+    "intro": "Sources read from your warehouse; destinations write to the tools your team uses. Each page lists the YAML, the required environment variables and the limits.",
+    "groups": [
+      {
+        "label": "Databases and warehouses",
+        "blurb": "Read from them, and write to most of them.",
+        "items": [
+          "postgres",
+          "mysql",
+          "clickhouse",
+          "bigquery",
+          "snowflake",
+          "databricks",
+          "sqlserver",
+          "redshift",
+          "duckdb",
+          "sqlite"
+        ]
+      },
+      {
+        "label": "Lakehouse, files and object storage",
+        "blurb": "",
+        "items": [
+          "deltalake",
+          "iceberg",
+          "parquet",
+          "file",
+          "s3",
+          "gcs",
+          "azure-blob",
+          "staged-upload"
+        ]
+      },
+      {
+        "label": "CRM and support",
+        "blurb": "",
+        "items": [
+          "hubspot",
+          "pipedrive",
+          "salesforce-bulk",
+          "intercom",
+          "zendesk"
+        ]
+      },
+      {
+        "label": "Marketing and analytics",
+        "blurb": "",
+        "items": [
+          "klaviyo",
+          "mixpanel",
+          "amplitude",
+          "google-ads",
+          "meta-conversions",
+          "sendgrid",
+          "twilio",
+          "email-smtp"
+        ]
+      },
+      {
+        "label": "Work tools",
+        "blurb": "",
+        "items": [
+          "jira",
+          "linear",
+          "notion",
+          "airtable",
+          "google-sheets",
+          "github-actions"
+        ]
+      },
+      {
+        "label": "Messaging and queues",
+        "blurb": "",
+        "items": [
+          "slack",
+          "discord",
+          "teams",
+          "sqs"
+        ]
+      },
+      {
+        "label": "Generic",
+        "blurb": "",
+        "items": [
+          "rest-api",
+          "elasticsearch"
+        ]
+      }
+    ]
+  },
+  "adr": {
+    "title": "Design records",
+    "intro": "Architecture decision records: why drt works the way it does. Newest at the bottom."
+  },
+  "migration": {
+    "title": "Migration",
+    "intro": "Upgrade notes between drt versions."
+  }
+}

@@ -1,0 +1,33 @@
+.wrap {
+  max-width: 960px;
+}
+.intro {
+  font-size: 1.1rem;
+  color: var(--drt-ink-soft, inherit);
+  max-width: 62ch;
+}
+.group {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--drt-line, var(--ifm-color-emphasis-200));
+}
+.group h2 {
+  margin-bottom: 0.25rem;
+}
+.blurb {
+  margin: 0 0 0.75rem;
+  color: var(--drt-ink-faint, var(--ifm-color-emphasis-700));
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem 1.5rem;
+}
+.list a {
+  display: block;
+  padding: 0.3rem 0;
+  font-weight: 500;
+}
