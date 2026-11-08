@@ -177,7 +177,10 @@ const config = {
         // ADR files are named 0016-...; keep the number in the route (the default
         // parser would strip it and make /adr/... URLs differ from the file names).
         numberPrefixParser: false,
-        editUrl: undefined,
+        // "Edit this page" opens the source file in drt-hub/drt, where these docs are
+        // authored (synced-docs/ is generated, so editing it here would be overwritten).
+        /** @param {{docPath: string}} args */
+        editUrl: ({docPath}) => `https://github.com/drt-hub/drt/edit/main/docs/${id}/${docPath}`,
         breadcrumbs: true,
         beforeDefaultRemarkPlugins: [[remarkDrtLinks, {root: SYNCED_DOCS_ROOT, published: DRT_PUBLISHED_FOLDERS}]],
       },
