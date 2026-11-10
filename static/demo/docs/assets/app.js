@@ -25,6 +25,7 @@
   function wireSearch() {
     var input = document.getElementById("drt-search");
     if (!input) return;
+    var scaleRoot = input.closest("[data-scale-filter-root]");
     var sidebar = document.querySelector(".sidebar");
     var emptyMsg = null;
     if (sidebar) {
@@ -33,6 +34,70 @@
       emptyMsg.textContent = "No matches";
       emptyMsg.hidden = true;
       sidebar.appendChild(emptyMsg);
+    }
+    if (scaleRoot) {
+      var panel = scaleRoot.querySelector(".scale-filter-panel");
+      var owner = scaleRoot.querySelector("[data-scale-owner]");
+      var maturity = scaleRoot.querySelector("[data-scale-maturity]");
+      var tag = scaleRoot.querySelector("[data-scale-tag]");
+      var result = scaleRoot.querySelector(".scale-filter-result");
+      var clear = scaleRoot.querySelector(".scale-filter-clear");
+      var suppressPanelOpen = false;
+      var escaping = false;
+      function openPanel() {
+        if (suppressPanelOpen) return;
+        panel.hidden = false;
+        input.setAttribute("aria-expanded", "true");
+      }
+      function applyScaleFilters() {
+        var q = input.value.trim().toLowerCase();
+        var ownerValue = owner.value;
+        var maturityValue = maturity.value;
+        var tagValue = tag.value;
+        var visible = 0;
+        document.querySelectorAll("[data-scale-sync]").forEach(function (li) {
+          var tags = JSON.parse(li.getAttribute("data-tags") || "[]");
+          var hit = (!q || (li.getAttribute("data-search") || "").indexOf(q) !== -1) &&
+            (!ownerValue || li.getAttribute("data-owner") === ownerValue) &&
+            (!maturityValue || li.getAttribute("data-maturity") === maturityValue) &&
+            (!tagValue || tags.indexOf(tagValue) !== -1);
+          li.hidden = !hit;
+          if (hit) visible += 1;
+        });
+        result.textContent = visible + (visible === 1 ? " sync" : " syncs");
+        if (emptyMsg) emptyMsg.hidden = visible > 0;
+      }
+      input.addEventListener("focus", openPanel);
+      input.addEventListener("input", function () {
+        // A search input's native Escape clears its value and fires `input` right after the
+        // keydown; that must not reopen the panel the same Escape just closed.
+        if (!escaping) openPanel();
+        applyScaleFilters();
+      });
+      [owner, maturity, tag].forEach(function (select) {
+        select.addEventListener("change", applyScaleFilters);
+      });
+      clear.addEventListener("click", function () {
+        input.value = "";
+        owner.value = "";
+        maturity.value = "";
+        tag.value = "";
+        applyScaleFilters();
+        input.focus();
+      });
+      scaleRoot.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          panel.hidden = true;
+          input.setAttribute("aria-expanded", "false");
+          suppressPanelOpen = true;
+          escaping = true;
+          setTimeout(function () { escaping = false; }, 0);
+          input.focus();
+          suppressPanelOpen = false;
+        }
+      });
+      applyScaleFilters();
+      return;
     }
     input.addEventListener("input", function () {
       var q = input.value.trim().toLowerCase();
@@ -107,6 +172,8 @@
         target = document.getElementById("overview");
       }
       pages.forEach(function (p) { p.classList.toggle("active", p === target); });
+      var scaleRoot = document.querySelector("[data-scale-filter-root]");
+      if (scaleRoot) scaleRoot.hidden = id !== "overview";
       document.querySelectorAll(".sidebar a, .topnav a").forEach(function (a) {
         a.classList.toggle("current", a.getAttribute("href") === "#" + id);
       });
