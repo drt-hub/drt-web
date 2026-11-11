@@ -1,7 +1,7 @@
 {
-  "schema_version": 6,
-  "drt_version": "1.3.0",
-  "generated_at": "2026-11-07T10:27:30Z",
+  "schema_version": 7,
+  "drt_version": "1.3.1",
+  "generated_at": "2026-11-10T03:37:41Z",
   "project": {
     "name": "acme-analytics",
     "profile": "bq_prod"
@@ -24,7 +24,11 @@
         "last_status": "success",
         "last_error": null
       },
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "alerts_to_slack",
@@ -43,7 +47,11 @@
         "last_status": "success",
         "last_error": null
       },
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "unavailable",
+        "reason": "Event/message sink: there is no stored target state to diff."
+      }
     },
     {
       "name": "errors_to_slack",
@@ -62,7 +70,11 @@
         "last_status": "partial",
         "last_error": "rate limited, 2 retries"
       },
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "unavailable",
+        "reason": "Event/message sink: there is no stored target state to diff."
+      }
     },
     {
       "name": "inventory_to_pg",
@@ -81,7 +93,11 @@
         "last_status": "success",
         "last_error": null
       },
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "leads_to_hubspot",
@@ -100,7 +116,11 @@
         "last_status": "success",
         "last_error": null
       },
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "needs-api-diff",
+        "reason": "Records live behind an API that could be read back by key (API-based diff, #472)."
+      }
     },
     {
       "name": "orders_to_pg",
@@ -131,7 +151,11 @@
           "mask": null
         }
       ],
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "products_to_pg",
@@ -148,7 +172,11 @@
         "last_status": "success",
         "last_error": null
       },
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "sessions_to_pg",
@@ -167,7 +195,11 @@
         "last_status": "success",
         "last_error": null
       },
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "users_to_hubspot",
@@ -194,7 +226,11 @@
           "mask": "hash"
         }
       ],
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "needs-api-diff",
+        "reason": "Records live behind an API that could be read back by key (API-based diff, #472)."
+      }
     },
     {
       "name": "users_to_pg",
@@ -221,7 +257,11 @@
           "mask": "hash"
         }
       ],
-      "dlq_depth": 0
+      "dlq_depth": 0,
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     }
   ],
   "sources": [
@@ -234,42 +274,74 @@
     {
       "name": "dest_postgres_public_accounts",
       "type": "postgres",
-      "label": "postgres (public.accounts)"
+      "label": "postgres (public.accounts)",
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "dest_slack_webhook",
       "type": "slack",
-      "label": "slack (webhook)"
+      "label": "slack (webhook)",
+      "plan": {
+        "status": "unavailable",
+        "reason": "Event/message sink: there is no stored target state to diff."
+      }
     },
     {
       "name": "dest_postgres_public_inventory",
       "type": "postgres",
-      "label": "postgres (public.inventory)"
+      "label": "postgres (public.inventory)",
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "dest_hubspot_contacts",
       "type": "hubspot",
-      "label": "hubspot (contacts)"
+      "label": "hubspot (contacts)",
+      "plan": {
+        "status": "needs-api-diff",
+        "reason": "Records live behind an API that could be read back by key (API-based diff, #472)."
+      }
     },
     {
       "name": "dest_postgres_public_orders",
       "type": "postgres",
-      "label": "postgres (public.orders)"
+      "label": "postgres (public.orders)",
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "dest_postgres_public_products",
       "type": "postgres",
-      "label": "postgres (public.products)"
+      "label": "postgres (public.products)",
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "dest_postgres_public_sessions",
       "type": "postgres",
-      "label": "postgres (public.sessions)"
+      "label": "postgres (public.sessions)",
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     },
     {
       "name": "dest_postgres_public_users",
       "type": "postgres",
-      "label": "postgres (public.users)"
+      "label": "postgres (public.users)",
+      "plan": {
+        "status": "available",
+        "reason": "Managed-table CREATE/ALTER statements are previewed without execution."
+      }
     }
   ],
   "edges": [

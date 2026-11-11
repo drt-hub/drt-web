@@ -14,37 +14,55 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <span class="brand"><span class="logo">d</span>drt docs</span>
-  <span class="project">acme-analytics<br><span class="ver">drt 1.3.0</span></span>
+  <span class="project">acme-analytics<br><span class="ver">drt 1.3.1</span></span>
   <nav class="topnav">
     <a class="navbtn active"
        href="index.html">Overview</a>
     <a class="navbtn " href="dag.html">DAG</a>
   </nav>
-  <span class="search"><input id="drt-search" type="search" placeholder="Filter…" autocomplete="off"></span>
+  
+  <span class="search scale-search" data-scale-filter-root>
+    <input id="drt-search" type="search" placeholder="Filter…" autocomplete="off"
+      aria-label="Search syncs" aria-controls="drt-scale-filters" aria-expanded="false">
+    <span class="scale-filter-panel" id="drt-scale-filters" hidden>
+      <label>Owner
+        <select data-scale-owner><option value="">All owners</option></select>
+      </label>
+      <label>Maturity
+        <select data-scale-maturity><option value="">All maturities</option><option value="high">high</option></select>
+      </label>
+      <label>Tag
+        <select data-scale-tag><option value="">All tags</option><option value="analytics">#analytics</option><option value="core">#core</option><option value="gtm">#gtm</option><option value="ops">#ops</option><option value="pii">#pii</option></select>
+      </label>
+      <button type="button" class="scale-filter-clear">Clear</button>
+      <span class="scale-filter-result" role="status" aria-live="polite"></span>
+    </span>
+  </span>
+  
 </header>
 <div class="shell">
   <aside class="sidebar">
     <details class="group" data-group="syncs" open>
       <summary>Syncs <span class="count">10</span></summary>
-      <ul><li><a href="sync/accounts-to-pg.html"
+      <ul><li data-scale-sync data-search="accounts_to_pg full refresh of the account dimension. postgres (public.accounts) core " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;]"><a href="sync/accounts-to-pg.html"
         >accounts_to_pg</a></li>
-      <li><a href="sync/alerts-to-slack.html"
+      <li data-scale-sync data-search="alerts_to_slack post anomaly alerts to #alerts. slack (webhook) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]"><a href="sync/alerts-to-slack.html"
         >alerts_to_slack</a></li>
-      <li><a href="sync/errors-to-slack.html"
+      <li data-scale-sync data-search="errors_to_slack stream pipeline errors to the on-call channel. slack (webhook) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]"><a href="sync/errors-to-slack.html"
         >errors_to_slack</a></li>
-      <li><a href="sync/inventory-to-pg.html"
+      <li data-scale-sync data-search="inventory_to_pg warehouse inventory deltas. postgres (public.inventory) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]"><a href="sync/inventory-to-pg.html"
         >inventory_to_pg</a></li>
-      <li><a href="sync/leads-to-hubspot.html"
+      <li data-scale-sync data-search="leads_to_hubspot sync qualified leads for the gtm team. hubspot (contacts) gtm " data-owner="" data-maturity="high" data-tags="[&#34;gtm&#34;]"><a href="sync/leads-to-hubspot.html"
         >leads_to_hubspot</a></li>
-      <li><a href="sync/orders-to-pg.html"
+      <li data-scale-sync data-search="orders_to_pg sync orders, enriched via user + product lookups. postgres (public.orders) core " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;]"><a href="sync/orders-to-pg.html"
         >orders_to_pg</a></li>
-      <li><a href="sync/products-to-pg.html"
+      <li data-scale-sync data-search="products_to_pg product catalog snapshot. postgres (public.products)  " data-owner="" data-maturity="high" data-tags="[]"><a href="sync/products-to-pg.html"
         >products_to_pg</a></li>
-      <li><a href="sync/sessions-to-pg.html"
+      <li data-scale-sync data-search="sessions_to_pg session rollups keyed by user. postgres (public.sessions) analytics " data-owner="" data-maturity="high" data-tags="[&#34;analytics&#34;]"><a href="sync/sessions-to-pg.html"
         >sessions_to_pg</a></li>
-      <li><a href="sync/users-to-hubspot.html"
+      <li data-scale-sync data-search="users_to_hubspot upsert users as hubspot contacts. hubspot (contacts) gtm pii " data-owner="" data-maturity="high" data-tags="[&#34;gtm&#34;,&#34;pii&#34;]"><a href="sync/users-to-hubspot.html"
         >users_to_hubspot</a></li>
-      <li><a href="sync/users-to-pg.html"
+      <li data-scale-sync data-search="users_to_pg mirror warehouse users into the app database. postgres (public.users) core pii " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;,&#34;pii&#34;]"><a href="sync/users-to-pg.html"
         >users_to_pg</a></li>
       </ul>
     </details>
@@ -95,7 +113,7 @@
     
 <div class="eyebrow">Overview</div>
 <h1>acme-analytics</h1>
-<p class="lede">drt 1.3.0 &middot; profile <code>bq_prod</code> &middot; manifest schema v6</p>
+<p class="lede">drt 1.3.1 &middot; profile <code>bq_prod</code> &middot; manifest schema v7</p>
 
 <div class="cards">
   <div class="card"><div class="num">10</div><div class="lbl">Syncs</div></div>
@@ -218,7 +236,7 @@
 
 
     
-    <div class="footer">drt docs · static · drt 1.3.0 · manifest schema v6</div>
+    <div class="footer">drt docs · static · drt 1.3.1 · manifest schema v7</div>
   </main>
 </div>
 <script type="application/json"
