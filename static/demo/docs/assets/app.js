@@ -21,21 +21,14 @@
     });
   }
 
-  // Filter sidebar links by text.
+  // Filter the overview sync table in scale mode; elsewhere filter sidebar links.
   function wireSearch() {
     var input = document.getElementById("drt-search");
     if (!input) return;
     var scaleRoot = input.closest("[data-scale-filter-root]");
     var sidebar = document.querySelector(".sidebar");
-    var emptyMsg = null;
-    if (sidebar) {
-      emptyMsg = document.createElement("div");
-      emptyMsg.className = "search-empty";
-      emptyMsg.textContent = "No matches";
-      emptyMsg.hidden = true;
-      sidebar.appendChild(emptyMsg);
-    }
     if (scaleRoot) {
+      var emptyMsg = document.querySelector("[data-scale-empty]");
       var panel = scaleRoot.querySelector(".scale-filter-panel");
       var owner = scaleRoot.querySelector("[data-scale-owner]");
       var maturity = scaleRoot.querySelector("[data-scale-maturity]");
@@ -55,13 +48,13 @@
         var maturityValue = maturity.value;
         var tagValue = tag.value;
         var visible = 0;
-        document.querySelectorAll("[data-scale-sync]").forEach(function (li) {
-          var tags = JSON.parse(li.getAttribute("data-tags") || "[]");
-          var hit = (!q || (li.getAttribute("data-search") || "").indexOf(q) !== -1) &&
-            (!ownerValue || li.getAttribute("data-owner") === ownerValue) &&
-            (!maturityValue || li.getAttribute("data-maturity") === maturityValue) &&
+        document.querySelectorAll(".overview-sync-table [data-scale-sync]").forEach(function (row) {
+          var tags = JSON.parse(row.getAttribute("data-tags") || "[]");
+          var hit = (!q || (row.getAttribute("data-search") || "").indexOf(q) !== -1) &&
+            (!ownerValue || row.getAttribute("data-owner") === ownerValue) &&
+            (!maturityValue || row.getAttribute("data-maturity") === maturityValue) &&
             (!tagValue || tags.indexOf(tagValue) !== -1);
-          li.hidden = !hit;
+          row.hidden = !hit;
           if (hit) visible += 1;
         });
         result.textContent = visible + (visible === 1 ? " sync" : " syncs");
@@ -98,6 +91,14 @@
       });
       applyScaleFilters();
       return;
+    }
+    var emptyMsg = null;
+    if (sidebar) {
+      emptyMsg = document.createElement("div");
+      emptyMsg.className = "search-empty";
+      emptyMsg.textContent = "No matches";
+      emptyMsg.hidden = true;
+      sidebar.appendChild(emptyMsg);
     }
     input.addEventListener("input", function () {
       var q = input.value.trim().toLowerCase();

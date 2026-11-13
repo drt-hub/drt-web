@@ -14,55 +14,37 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <span class="brand"><span class="logo">d</span>drt docs</span>
-  <span class="project">acme-analytics<br><span class="ver">drt 1.3.1</span></span>
+  <span class="project">acme-analytics<br><span class="ver">drt 1.3.2</span></span>
   <nav class="topnav">
     <a class="navbtn active"
        href="index.html">Overview</a>
     <a class="navbtn " href="dag.html">DAG</a>
   </nav>
   
-  <span class="search scale-search" data-scale-filter-root>
-    <input id="drt-search" type="search" placeholder="Filter…" autocomplete="off"
-      aria-label="Search syncs" aria-controls="drt-scale-filters" aria-expanded="false">
-    <span class="scale-filter-panel" id="drt-scale-filters" hidden>
-      <label>Owner
-        <select data-scale-owner><option value="">All owners</option></select>
-      </label>
-      <label>Maturity
-        <select data-scale-maturity><option value="">All maturities</option><option value="high">high</option></select>
-      </label>
-      <label>Tag
-        <select data-scale-tag><option value="">All tags</option><option value="analytics">#analytics</option><option value="core">#core</option><option value="gtm">#gtm</option><option value="ops">#ops</option><option value="pii">#pii</option></select>
-      </label>
-      <button type="button" class="scale-filter-clear">Clear</button>
-      <span class="scale-filter-result" role="status" aria-live="polite"></span>
-    </span>
-  </span>
-  
 </header>
 <div class="shell">
   <aside class="sidebar">
     <details class="group" data-group="syncs" open>
       <summary>Syncs <span class="count">10</span></summary>
-      <ul><li data-scale-sync data-search="accounts_to_pg full refresh of the account dimension. postgres (public.accounts) core " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;]"><a href="sync/accounts-to-pg.html"
+      <ul><li><a href="sync/accounts-to-pg.html"
         >accounts_to_pg</a></li>
-      <li data-scale-sync data-search="alerts_to_slack post anomaly alerts to #alerts. slack (webhook) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]"><a href="sync/alerts-to-slack.html"
+      <li><a href="sync/alerts-to-slack.html"
         >alerts_to_slack</a></li>
-      <li data-scale-sync data-search="errors_to_slack stream pipeline errors to the on-call channel. slack (webhook) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]"><a href="sync/errors-to-slack.html"
+      <li><a href="sync/errors-to-slack.html"
         >errors_to_slack</a></li>
-      <li data-scale-sync data-search="inventory_to_pg warehouse inventory deltas. postgres (public.inventory) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]"><a href="sync/inventory-to-pg.html"
+      <li><a href="sync/inventory-to-pg.html"
         >inventory_to_pg</a></li>
-      <li data-scale-sync data-search="leads_to_hubspot sync qualified leads for the gtm team. hubspot (contacts) gtm " data-owner="" data-maturity="high" data-tags="[&#34;gtm&#34;]"><a href="sync/leads-to-hubspot.html"
+      <li><a href="sync/leads-to-hubspot.html"
         >leads_to_hubspot</a></li>
-      <li data-scale-sync data-search="orders_to_pg sync orders, enriched via user + product lookups. postgres (public.orders) core " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;]"><a href="sync/orders-to-pg.html"
+      <li><a href="sync/orders-to-pg.html"
         >orders_to_pg</a></li>
-      <li data-scale-sync data-search="products_to_pg product catalog snapshot. postgres (public.products)  " data-owner="" data-maturity="high" data-tags="[]"><a href="sync/products-to-pg.html"
+      <li><a href="sync/products-to-pg.html"
         >products_to_pg</a></li>
-      <li data-scale-sync data-search="sessions_to_pg session rollups keyed by user. postgres (public.sessions) analytics " data-owner="" data-maturity="high" data-tags="[&#34;analytics&#34;]"><a href="sync/sessions-to-pg.html"
+      <li><a href="sync/sessions-to-pg.html"
         >sessions_to_pg</a></li>
-      <li data-scale-sync data-search="users_to_hubspot upsert users as hubspot contacts. hubspot (contacts) gtm pii " data-owner="" data-maturity="high" data-tags="[&#34;gtm&#34;,&#34;pii&#34;]"><a href="sync/users-to-hubspot.html"
+      <li><a href="sync/users-to-hubspot.html"
         >users_to_hubspot</a></li>
-      <li data-scale-sync data-search="users_to_pg mirror warehouse users into the app database. postgres (public.users) core pii " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;,&#34;pii&#34;]"><a href="sync/users-to-pg.html"
+      <li><a href="sync/users-to-pg.html"
         >users_to_pg</a></li>
       </ul>
     </details>
@@ -113,13 +95,120 @@
     
 <div class="eyebrow">Overview</div>
 <h1>acme-analytics</h1>
-<p class="lede">drt 1.3.1 &middot; profile <code>bq_prod</code> &middot; manifest schema v7</p>
+<p class="lede">drt 1.3.2 &middot; profile <code>bq_prod</code> &middot; manifest schema v7</p>
 
 <div class="cards">
   <div class="card"><div class="num">10</div><div class="lbl">Syncs</div></div>
   <div class="card"><div class="num">1</div><div class="lbl">Sources</div></div>
   <div class="card"><div class="num">8</div><div class="lbl">Destinations</div></div>
 </div>
+<h2>Syncs</h2>
+
+<div class="overview-sync-filter" data-scale-filter-root>
+  <input id="drt-search" type="search" placeholder="Filter syncs…" autocomplete="off"
+    aria-label="Search syncs" aria-controls="drt-scale-filters" aria-expanded="false">
+  <div class="scale-filter-panel" id="drt-scale-filters" hidden>
+    <label>Owner
+      <select data-scale-owner><option value="">All owners</option></select>
+    </label>
+    <label>Maturity
+      <select data-scale-maturity><option value="">All maturities</option><option value="high">high</option></select>
+    </label>
+    <label>Tag
+      <select data-scale-tag><option value="">All tags</option><option value="analytics">#analytics</option><option value="core">#core</option><option value="gtm">#gtm</option><option value="ops">#ops</option><option value="pii">#pii</option></select>
+    </label>
+    <button type="button" class="scale-filter-clear">Clear</button>
+    <span class="scale-filter-result" role="status" aria-live="polite"></span>
+  </div>
+</div>
+
+<table class="overview-sync-table" role="table">
+  <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Name</th><th scope="col" role="columnheader">Destination</th><th scope="col" role="columnheader">Status</th><th scope="col" role="columnheader">Last run</th><th scope="col" role="columnheader">Plan coverage</th></tr></thead>
+  <tbody role="rowgroup">
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="accounts_to_pg full refresh of the account dimension. postgres (public.accounts) core " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/accounts-to-pg.html">accounts_to_pg</a></td>
+    <td role="cell" data-label="Destination">postgres (public.accounts)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T21:05:00Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">available</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="alerts_to_slack post anomaly alerts to #alerts. slack (webhook) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/alerts-to-slack.html">alerts_to_slack</a></td>
+    <td role="cell" data-label="Destination">slack (webhook)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T22:55:33Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">unavailable</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="errors_to_slack stream pipeline errors to the on-call channel. slack (webhook) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/errors-to-slack.html">errors_to_slack</a></td>
+    <td role="cell" data-label="Destination">slack (webhook)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--warning)"></span><span class="status-partial">partial</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T18:00:00Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">unavailable</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="inventory_to_pg warehouse inventory deltas. postgres (public.inventory) ops " data-owner="" data-maturity="high" data-tags="[&#34;ops&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/inventory-to-pg.html">inventory_to_pg</a></td>
+    <td role="cell" data-label="Destination">postgres (public.inventory)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T19:15:00Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">available</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="leads_to_hubspot sync qualified leads for the gtm team. hubspot (contacts) gtm " data-owner="" data-maturity="high" data-tags="[&#34;gtm&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/leads-to-hubspot.html">leads_to_hubspot</a></td>
+    <td role="cell" data-label="Destination">hubspot (contacts)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T16:00:00Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">needs-api-diff</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="orders_to_pg sync orders, enriched via user + product lookups. postgres (public.orders) core " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/orders-to-pg.html">orders_to_pg</a></td>
+    <td role="cell" data-label="Destination">postgres (public.orders)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T23:00:48Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">available</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="products_to_pg product catalog snapshot. postgres (public.products)  " data-owner="" data-maturity="high" data-tags="[]">
+    <td role="cell" data-label="Name"><a href="sync/products-to-pg.html">products_to_pg</a></td>
+    <td role="cell" data-label="Destination">postgres (public.products)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T20:30:00Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">available</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="sessions_to_pg session rollups keyed by user. postgres (public.sessions) analytics " data-owner="" data-maturity="high" data-tags="[&#34;analytics&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/sessions-to-pg.html">sessions_to_pg</a></td>
+    <td role="cell" data-label="Destination">postgres (public.sessions)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T22:10:30Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">available</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="users_to_hubspot upsert users as hubspot contacts. hubspot (contacts) gtm pii " data-owner="" data-maturity="high" data-tags="[&#34;gtm&#34;,&#34;pii&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/users-to-hubspot.html">users_to_hubspot</a></td>
+    <td role="cell" data-label="Destination">hubspot (contacts)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T22:00:11Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">needs-api-diff</span></td>
+  </tr>
+  
+  <tr class="overview-sync-row" role="row" data-scale-sync data-search="users_to_pg mirror warehouse users into the app database. postgres (public.users) core pii " data-owner="" data-maturity="high" data-tags="[&#34;core&#34;,&#34;pii&#34;]">
+    <td role="cell" data-label="Name"><a href="sync/users-to-pg.html">users_to_pg</a></td>
+    <td role="cell" data-label="Destination">postgres (public.users)</td>
+    <td role="cell" data-label="Status"><span><span class="dot" style="background:var(--success)"></span><span class="status-success">success</span></span></td>
+    <td role="cell" data-label="Last run" class="font-mono">2026-07-09T23:55:12Z</td>
+    <td role="cell" data-label="Plan coverage"><span class="font-mono">available</span></td>
+  </tr>
+  
+  </tbody>
+</table>
+<div class="empty overview-sync-empty" data-scale-empty hidden>No matching syncs.</div>
 <div class="two-col">
   <div>
     <h2>Source types</h2>
@@ -236,7 +325,7 @@
 
 
     
-    <div class="footer">drt docs · static · drt 1.3.1 · manifest schema v7</div>
+    <div class="footer">drt docs · static · drt 1.3.2 · manifest schema v7</div>
   </main>
 </div>
 <script type="application/json"
