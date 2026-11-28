@@ -36,6 +36,10 @@ destination:
 | `max_records_per_request` | int \| null | null | Batch-mode request cap; `null` sends the engine-provided chunk in one request |
 | `error_path` | string \| null | null | Dotted path to an index-aligned per-record error list in a non-2xx JSON response |
 | `auth` | AuthConfig \| null | null | Authentication config (see below) |
+| `retry_creates` | boolean | `false` | Allow ambiguous blind POSTs to retry. This restores legacy behavior with duplicate-side-effect risk. |
+| `retry` | RetryConfig \| null | null | Per-destination override of `sync.retry`. |
+| `native_idempotency_key` | string \| null | null | Header-value template. Record mode is retry-keyed only when this renders non-empty and the target API honors the header; batch mode remains blind. |
+| `native_idempotency_header` | string | `"Idempotency-Key"` | Header carrying `native_idempotency_key`. |
 
 ## Batch request bodies
 
@@ -176,10 +180,30 @@ body_template: |
 
 Anything else still raises `TypeError`, matching `json.dumps`. The default `tojson` filter is unchanged.
 
+## Retry safety
+
+An unkeyed record-mode `POST` and every batch-mode `POST` are **blind writes**.
+After a response-read failure or retryable 5xx, drt records delivery-unknown for
+the affected row or whole batch chunk and does not send a second POST. Assume the
+target may have committed the request; inspect it before manual replay.
+
+Record mode becomes **keyed** only when `native_idempotency_key` renders a
+non-empty stable value and the operator has verified that the target honors
+`native_idempotency_header`. The generic connector cannot verify that contract.
+Batch mode's generated `request_id` is stable only inside one immediate attempt
+loop, changes across chunks and runs, and proves no target behavior, so it remains
+blind per [ADR 0023](../adr/0023-non-idempotent-create-retries.md).
+
+HTTP 429 and proven pre-send connection failures still retry normally.
+`retry_creates: true` restores blind retries after ambiguous POST failures and
+logs a duplicate-side-effect warning. `GET` pagination is classified as a safe
+read. Other configured methods retain their existing retry behavior. See the
+[retry-safety guide](../guides/retry-safety.md) for recovery and ledger limits.
+
 ## Notes
 
 - In record mode, without `body_template`, each record is sent as-is as a JSON object
-- Rate limiting and retry are configured in the `sync` section, not the destination
+- Rate limiting and retry can be configured at the destination or sync level; destination values win
 - The generic REST API destination covers any HTTP endpoint — use specific destinations (Slack, HubSpot, etc.) when available for better defaults
 
 ---
@@ -202,6 +226,7 @@ api_users:
   result_path: data.items     # optional dot-path to the records array in the response
   incremental:                # optional — see below
     start_param: updated_since
+    end_param: updated_before # optional; required by executable sync.backfill windows
 ```
 
 | Field | Type | Default | Description |
@@ -212,6 +237,7 @@ api_users:
 | `pagination` | PaginationConfig \| null | null | `offset` (offset/limit params), `cursor` (token from the response), or `link_header` (RFC 5988 `Link: rel="next"`); `max_pages` caps all styles (default 100) |
 | `result_path` | string \| null | null | Dot-notation path to the records array (defaults: top-level list, `records`, or `data`) |
 | `incremental.start_param` | string \| null | null | Incremental extraction — see below |
+| `incremental.end_param` | string \| null | null | Exclusive upper-bound parameter for executable `sync.backfill` windows |
 
 ## Incremental extraction
 
@@ -240,9 +266,22 @@ How the pieces compose:
 - The parameter is sent on every page for `offset` / `cursor` / no-pagination
   styles; for `link_header` only on the first request (the server's `next`
   links are authoritative full URLs).
-- `--cursor-value` works as usual for bounded backfills.
+- `--cursor-value` works for legacy one-bound recovery, but is refused when a
+  sync declares `sync.backfill`.
 - Without `incremental.start_param`, `mode: incremental` still tracks the
   watermark but re-extracts the full endpoint every run (drt logs a warning).
+- `sync.backfill` additionally requires `incremental.end_param`; drt sends the
+  half-open window as `start_param=low&end_param=high`. Slice 3 executes these
+  windows through `drt run` and MCP `drt_run_sync`; dry-run, build, serve,
+  orchestrator, plan/apply, exact replay, retry, limit, cursor override, and
+  full-refresh entry points are refused. Windowed extraction rejects
+  `link_header` pagination because a followed link may omit the two required
+  bounds; use offset or cursor pagination instead.
+- Pagination request keys must be distinct within their strategy:
+  `offset_param` must differ from `limit_param`, and `cursor_param` must differ
+  from `limit_param`. These comparisons, and the checks against incremental
+  range parameter names, are case-sensitive because HTTP query parameter names
+  are case-sensitive.
 
 ## Retry on transient extract failures ([#766](https://github.com/drt-hub/drt/issues/766))
 

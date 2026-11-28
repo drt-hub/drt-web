@@ -7,6 +7,12 @@ drt automatically retries transient HTTP failures (5xx errors, network blips, ra
 
 > **Priority**: `destination.retry` > `sync.retry` > built-in defaults (`RetryConfig()`).
 
+`RetryConfig` says which failures are retry candidates; the operation's replay
+safety still decides whether a candidate may be repeated. In particular, blind
+message/create POSTs stop with delivery-unknown after a possibly sent attempt.
+They still retry 429 and proven pre-send connection failures. See
+[Retry safety for creates and messages](retry-safety.md).
+
 ## Configuration
 
 ```yaml
@@ -27,7 +33,7 @@ sync:
 | `initial_backoff` | `1.0` | Seconds to wait before the first retry. |
 | `backoff_multiplier` | `2.0` | Wait grows by this factor each attempt. `1.0` = linear (constant), `2.0` = exponential doubling. |
 | `max_backoff` | `60.0` | Upper bound on the per-retry wait, regardless of multiplier. |
-| `retryable_status_codes` | `[429, 500, 502, 503, 504]` | HTTP status codes that trigger a retry. Other 4xx codes (e.g. `400`, `401`) raise immediately. |
+| `retryable_status_codes` | `[429, 500, 502, 503, 504]` | HTTP statuses eligible for retry. A blind create suppresses ambiguous replays even when a 5xx is listed. Other 4xx codes (e.g. `400`, `401`) raise immediately. |
 
 ### Per-destination override
 
@@ -54,7 +60,7 @@ Supported on every HTTP destination: `discord`, `github_actions`, `google_ads`, 
 
 ## When retry happens
 
-drt retries on:
+For idempotent, keyed, and otherwise replay-safe operations, drt retries on:
 
 - **HTTP responses** with a status code in `retryable_status_codes`. Default codes cover rate limits (`429`) and gateway/upstream issues (`500`, `502`, `503`, `504`).
 - **Transport errors** (`httpx.TransportError`) — network unreachable, DNS failure, connection reset, read timeout.
@@ -63,8 +69,25 @@ drt does **not** retry on:
 
 - 4xx client errors other than `429` (assumed permanent — invalid auth, malformed payload).
 - Application errors raised by your sync config (template failures, missing fields).
+- Blind creates after a possibly sent transport failure or retryable 5xx. Set
+  the destination-specific `retry_creates: true` escape hatch only if duplicate
+  side effects are acceptable.
 
 If all `max_attempts` are exhausted, the original exception propagates and the row is recorded as a failure (subject to `sync.on_error`).
+
+## DLQ replay after fail-fast writes
+
+`drt retry` removes a dead letter only when the destination result can attribute
+the record as successful. A destination that stops partway through a batch with
+`sync.on_error: fail` may report later rows as skipped and identify their batch
+indices as unattempted. In that case, replay retains only the failed and
+unattempted rows and removes earlier confirmed successes.
+
+For compatibility with destinations that report only a scalar skipped count,
+an unexplained skip keeps the whole replay group queued. This conservative
+fallback can resend a confirmed success on a later retry, but it will not
+silently delete a row that was never sent. Zendesk users and organizations
+provide per-record unattempted attribution.
 
 ## Backoff timing
 
@@ -120,5 +143,6 @@ sync:
 
 ## See also
 
+- [Retry safety for creates and messages](retry-safety.md) — blind, keyed, and reconciled writes
 - [API reference: `sync.retry`](../llm/API_REFERENCE.md#sync-options) — full schema reference
 - [`drt/destinations/retry.py`](../../drt/destinations/retry.py) — the `with_retry()` helper and `resolve_retry()` priority logic
