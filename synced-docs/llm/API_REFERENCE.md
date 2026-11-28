@@ -279,7 +279,7 @@ destination:                # required: see Destination Configs below
 sync:                       # optional: all fields have defaults
   mode: full                # "full" (default) | "incremental" | "upsert" | "replace" | "mirror". replace/mirror: Postgres, MySQL, ClickHouse, Snowflake, Databricks, BigQuery
   replace_strategy: truncate # "truncate" (default) | "swap"; only valid with mode: replace
-  match_policy: upsert      # optional (#757): "upsert" (default) | "update_only" (only touch rows that already exist — no-match rows are SKIPPED, counted in SyncResult.skipped with a skipped_no_match breakdown; `drt run` prints "N skipped (M no match)" and --output json adds rows_skipped / rows_skipped_no_match) | "create_only" (only insert rows that don't exist — existing rows untouched). Applies to the upsert write path (mode: full/upsert/incremental); rejected for replace/mirror; fails fast on destinations that don't implement it. Postgres + MySQL + HubSpot + Intercom; other SaaS destinations follow per-PR
+  match_policy: upsert      # optional (#757): "upsert" (default) | "update_only" (only touch rows that already exist — no-match rows are SKIPPED, counted in SyncResult.skipped with a skipped_no_match breakdown; `drt run` prints "N skipped (M no match)" and --output json adds rows_skipped / rows_skipped_no_match) | "create_only" (only insert rows that don't exist — existing rows untouched). Applies to the upsert write path (mode: full/upsert/incremental); rejected for replace/mirror; fails fast on destinations that don't implement it. Postgres + MySQL + HubSpot + Intercom + Klaviyo profiles + Pipedrive; other SaaS destinations follow per-PR
   write_policy: overwrite  # optional (#1238): "overwrite" (default) | "fill_empty"; fill only NULL/blank destination values, new rows in full; rejected for replace
   write_policy_overrides:  # optional: exact destination column/property name -> policy
     lifecycle_stage: overwrite
@@ -290,6 +290,10 @@ sync:                       # optional: all fields have defaults
   diff:                     # only with incremental_strategy: diff; omitted means hash_columns: all
     hash_columns: all       # "all" or a non-empty list; key columns are excluded from all
   cursor_field: updated_at  # required when mode=incremental — column name for watermark
+  backfill:                 # optional ADR 0021 fixed half-open windows; cursor strategy only
+    window: 1d              # positive duration for timestamp cursors, positive int for numeric
+    start: "2025-01-01T00:00:00Z" # required first-run lower bound
+    end: "2025-04-01T00:00:00Z"   # optional fixed exclusive ceiling
   watermark:                # optional: remote watermark storage for stateless environments
     storage: local          # "local" (default) | "gcs" | "bigquery"
     bucket: my-bucket       # GCS only
@@ -357,6 +361,7 @@ sync:                       # optional: all fields have defaults
 # Priority order: destination.retry > sync.retry > RetryConfig defaults.
 # destination:
 #   type: notion
+#   retry_creates: false    # default; Notion page creation is blind (ADR 0023)
 #   retry:
 #     max_attempts: 7       # only this destination retries 7 times
 
@@ -399,6 +404,19 @@ tests:                      # optional: post-sync validation (DB destinations on
     query: "SELECT * FROM {{ table }} WHERE total < 0"  # arbitrary SQL: returns FAILING rows, 0 = pass
     severity: warn                    # optional on every type: "warn" | "error" (default)
 ```
+
+`sync.backfill` executes sequential `[low, high)` cursor windows and resumes
+from the exclusive boundary checkpoint written after each fully consumed,
+finalized, DLQ-flushed, destination-acknowledged window. Empty windows advance.
+Missing/null/out-of-range source cursors always fail the window; `on_error:
+skip` applies only to destination row failures. Slice 3 execution is limited to
+`drt run` and MCP `drt_run_sync`. Dry-run/diff, `--limit`, `--cursor-value`,
+`drt run --backfill-start/--backfill-end` (MCP `backfill_start`/`backfill_end`) override the range of exactly one selected `sync.backfill` sync: integers for a numeric backfill, ISO-8601 instants for a timestamp one; a start below the checkpoint is a bounded replay that never moves the checkpoint back; mutually exclusive with `--cursor-value`, `--full-refresh` and `--limit`.
+`--full-refresh`, build, serve, library default, Airflow/Prefect/Dagster,
+test, plan/apply, exact replay, and retry are refused. Same-sync concurrent runs
+and downgrading drt against backfill-written state are unsupported. Use `drt
+state reset`, never hand-edit state; `--runs` retains the cursor/boundary pair
+and `--watermark` clears both. See `docs/guides/windowed-backfill.md`.
 
 ### Write policy (`sync.write_policy`, #1238)
 
@@ -876,6 +894,7 @@ destination:
   auth:                                      # optional — see Auth Configs
     type: bearer
     token_env: MY_API_TOKEN
+  retry_creates: false                       # default; true restores duplicate-risk blind POST replay
   native_idempotency_key: "{{ sync_name }}:{{ row.id }}" # optional (#897), record mode
   native_idempotency_header: Idempotency-Key # default; change for APIs using another header
 ```
@@ -899,7 +918,13 @@ Rate limiting is charged once per outer request in batch mode (a request now buy
 
 `native_idempotency_key` is rendered once before drt's retry loop and sent in
 `native_idempotency_header`. It protects against an ambiguous HTTP response
-only when the receiving API actually deduplicates that header. Several other
+only when the receiving API actually deduplicates that header and the rendered
+record-mode value is non-empty. Batch POST remains blind: its generated
+`request_id` is local to one chunk/run and proves no receiver behavior. Unkeyed
+record POST and every batch POST stop after an ambiguous transport failure or
+retryable 5xx with a delivery-unknown RowError. HTTP 429 and proven pre-send
+connection failures remain retryable. `retry_creates: true` restores blind POST
+replay with a warning. Several other
 fire-and-forget destination configs accept the field only so `drt validate`
 can warn that their APIs offer no mechanism to wire it to; do not treat a
 warning-only field as retry protection.
@@ -913,6 +938,7 @@ destination:
   webhook_url_env: SLACK_WEBHOOK_URL           # env var name
   message_template: "New user: {{ row.name }} ({{ row.email }})"  # Jinja2, default: "{{ row }}"
   block_kit: false                             # true = message_template is Block Kit JSON
+  retry_creates: false                         # default; true can duplicate messages
 ```
 
 Block Kit example:
@@ -929,6 +955,11 @@ Block Kit example:
     }
 ```
 
+Slack Incoming Webhook POST is blind: no documented replay key or returned
+message timestamp. Ambiguous failures become delivery-unknown RowErrors after
+one POST; inspect Slack before replay. 429 and proven pre-send connection errors
+still retry. `retry_creates: true` restores the legacy replay with a warning.
+
 ### `type: discord`
 
 ```yaml
@@ -938,6 +969,7 @@ destination:
   webhook_url_env: DISCORD_WEBHOOK_URL                 # env var name
   message_template: "New user: {{ row.name }} ({{ row.email }})"  # Jinja2, default: "{{ row }}"
   embeds: false                                        # true = message_template is embeds JSON
+  retry_creates: false                                 # default; true can duplicate messages
 ```
 
 Embeds example:
@@ -954,6 +986,12 @@ Embeds example:
       ]
     }
 ```
+
+Discord Execute Webhook POST is blind: the documented parameters expose no
+idempotency key (`wait` confirms; it does not deduplicate). Ambiguous failures
+become delivery-unknown RowErrors after one POST; inspect Discord before replay.
+429 and proven pre-send connection errors still retry. `retry_creates: true`
+restores the legacy replay with a warning.
 
 ### `type: github_actions`
 
@@ -972,14 +1010,20 @@ destination:
   auth:
     type: bearer
     token_env: GITHUB_TOKEN       # needs actions:write permission
+  retry_creates: false            # default; true can start a second workflow run
 ```
+
+`workflow_dispatch` carries no idempotency key, so it is a blind create: an
+ambiguous failure becomes a delivery-unknown RowError after one request (429 and
+proven pre-send connection errors still retry). `retry_creates: true` restores
+the legacy replay with a warning.
 
 ### `type: hubspot`
 
 ```yaml
 destination:
   type: hubspot
-  object_type: contacts           # "contacts" | "deals" | "companies", default: "contacts"
+  object_type: contacts           # contacts | companies | deals | custom object name/ID
   id_property: email              # default: "email" — upsert deduplication key
   properties_template: |          # optional Jinja2 template → JSON object of HubSpot properties
     {
@@ -991,6 +1035,7 @@ destination:
   auth:
     type: bearer
     token_env: HUBSPOT_TOKEN      # Private App token with CRM write scope
+  retry_creates: false            # default; true allows duplicate-risk blind replay
 ```
 
 HubSpot supports `sync.write_policy: fill_empty` for `mode: full`, `upsert`, and
@@ -1018,6 +1063,55 @@ the aggregated `SyncResult.kept_values` counts kept properties and `drt run`
 prints them. This leg is mock-verified only, not verified against a live HubSpot
 account. HubSpot has no `drt plan` / `--dry-run --diff` support today (#472).
 
+After a lost create response or retryable 5xx, drt searches the same standard or
+custom object type with an exact `EQ` filter on the rendered `id_property`. One
+result is accepted and receives an ID-addressed update for `upsert`; multiple IDs
+are refused, and no result fails delivery-unknown because HubSpot documents search
+index lag after creates. A missing/empty `id_property` is a blind create and also
+fails closed. HTTP 429 and proven pre-send connection failures remain retryable,
+as do searches, batch reads, and addressed updates. `retry_creates: true` permits
+a blind replay after a miss and emits a duplicate-object-risk warning. See the
+[HubSpot connector docs](../connectors/hubspot.md) for recovery steps and the
+mock-only verification boundary.
+
+### `type: intercom`
+
+```yaml
+destination:
+  type: intercom
+  properties_template: |
+    {
+      "role": "user",
+      "external_id": "{{ row.customer_id }}",
+      "email": "{{ row.email }}",
+      "name": "{{ row.name }}"
+    }
+  auth:
+    type: bearer
+    token_env: INTERCOM_TOKEN
+  retry_creates: false                  # default; true allows duplicate-risk blind replay
+  retry:                                # optional: overrides sync.retry as a whole
+    max_attempts: 3
+    initial_backoff: 1.0
+  rate_limit:                           # optional: overrides sync.rate_limit as a whole
+    requests_per_second: 10
+sync:
+  mode: upsert
+  match_policy: upsert                  # upsert | update_only | create_only
+```
+
+`upsert` creates a contact and follows Intercom's duplicate `409` ID with an
+addressed update; `create_only` treats a duplicate conflict as a policy skip;
+`update_only` uses a rendered Intercom `id` directly or searches with exact `=`
+filters on rendered `external_id` and/or `email`. Multiple search matches fail
+closed. After a lost create response or retryable 5xx, drt performs the same exact
+search: one contact is accepted (and updated for `upsert`), multiple IDs are a
+RowError, and no match fails delivery-unknown because Intercom says a new contact
+can take minutes to appear in search. HTTP 429 and proven pre-send connection
+failures remain retryable. `retry_creates: true` permits a blind replay after a
+miss and warns about duplicate-contact risk. See the
+[Intercom connector docs](../connectors/intercom.md).
+
 ### `type: zendesk`
 
 ```yaml
@@ -1033,7 +1127,15 @@ destination:
       "health_score": "{{ row.health_score }}",
       "plan": "{{ row.plan }}"
     }
+  retry_creates: false                   # default; true restores blind replay (duplicate risk)
 ```
+
+Replay safety is endpoint-specific. A **user** request is replay-safe only when every row
+carries a non-blank string `email` or `external_id` (a user `id`, including one copied by
+`id_field`, is not a create-or-update-many match key). An **organization** is replay-safe
+only with a valid positive numeric `id` or a non-blank string `external_id` (`email` and
+`name` do not count). Any other row is a blind create: an ambiguous failure becomes a
+delivery-unknown RowError after one request; `retry_creates: true` restores the replay.
 
 > Users are upserted through `users/create_or_update_many` in 100-record batches. Organizations use `organizations/create_or_update` per row. Custom fields are sent as `user_fields` or `organization_fields`.
 
@@ -1050,7 +1152,12 @@ destination:
   summary_template: "Alert: {{ row.title }}"         # required: Jinja2 template
   description_template: "Details: {{ row.body }}"    # required: Jinja2 template
   issue_id_field: issue_id              # default: "issue_id" — if present in row, updates the issue; otherwise creates
+  retry_creates: false                  # default; true can create a duplicate issue
 ```
+
+Issue creation is blind (no documented idempotency key): ambiguous failures become
+delivery-unknown RowErrors after one POST. Updates address one issue id and keep
+normal retries. `retry_creates: true` restores blind create replay with a warning.
 
 > **Create vs Update:** If the row contains the `issue_id_field` column (default: `issue_id`), the destination updates that Jira issue (PUT). Otherwise, it creates a new issue (POST). Description is rendered as Atlassian Document Format (ADF) for Jira REST API v3.
 
@@ -1216,7 +1323,14 @@ destination:
   webhook_url_env: TEAMS_WEBHOOK_URL   # env var for Incoming Webhook URL
   message_template: "New alert: {{ row.message }}"  # Jinja2 plain text
   adaptive_card: false                 # true = message_template is Adaptive Card JSON
+  retry_creates: false                 # default; true can duplicate messages/workflow triggers
 ```
+
+Teams Incoming Webhook / Workflows POST is blind: Microsoft documents no client
+dedup key. Ambiguous failures become delivery-unknown RowErrors after one POST;
+inspect Teams and the workflow run history before replay. 429 and proven
+pre-send connection errors still retry. `retry_creates: true` restores the
+legacy replay with a warning.
 
 ### `type: parquet`
 
@@ -1250,7 +1364,12 @@ destination:
   team_id: "TEAM-ID"                   # required: Linear team ID
   title_template: "{{ row.title }}"    # Jinja2 template for issue title
   description_template: "{{ row.body }}"  # Jinja2 template for description
+  retry_creates: false                 # default; true can create a duplicate issue
 ```
+
+`issueCreate` is treated as blind (no verified replay key): ambiguous failures become
+delivery-unknown RowErrors after one request; 429 and proven pre-send connection
+errors still retry. `retry_creates: true` restores the legacy replay with a warning.
 
 ### `type: sendgrid`
 
@@ -1262,7 +1381,34 @@ destination:
   to_field: email                      # row field for recipient email
   subject_template: "Alert: {{ row.title }}"  # Jinja2 template
   body_template: "{{ row.message }}"   # Jinja2 template for email body
+  retry_creates: false                 # default; true can send duplicate email
 ```
+
+SendGrid Mail Send is blind. `batch_id` controls scheduled-send grouping and
+`custom_args` are event metadata; neither is documented as a replay-dedup key.
+Ambiguous failures become delivery-unknown RowErrors after one POST; inspect
+SendGrid activity before replay. 429 and proven pre-send connection errors still
+retry. `retry_creates: true` restores the legacy replay with a warning.
+
+### `type: twilio`
+
+```yaml
+destination:
+  type: twilio
+  account_sid_env: TWILIO_ACCOUNT_SID
+  auth_token_env: TWILIO_AUTH_TOKEN
+  from_number: "+15551234567"
+  to_template: "{{ row.phone }}"
+  message_template: "Your order {{ row.order_id }} shipped."
+  retry_creates: false                 # default; true can send/bill duplicate SMS
+```
+
+Twilio's classic Messages create endpoint is blind: its request contract has no
+documented client replay key. `I-Twilio-Idempotency-Token` applies to Twilio's
+outbound webhook retries, not this API request. Ambiguous failures become
+delivery-unknown RowErrors after one POST; inspect Twilio message logs before
+replay. 429 and proven pre-send connection errors still retry.
+`retry_creates: true` restores the legacy replay with a warning.
 
 ### `type: staged_upload`
 
@@ -1322,6 +1468,7 @@ destination:
   base_url: https://api.pipedrive.com/api/v2   # optional, https only: this is the default
   object: person                         # only person is supported for now
   match_field: email                     # email | name | phone: column for the exact search
+  retry_creates: false                   # default; true allows duplicate-risk blind create replay
   retry:                                 # optional: overrides sync.retry as a whole
     max_attempts: 3
     initial_backoff: 1.0
@@ -1340,7 +1487,11 @@ nothing written. `name`, `owner_id`, `org_id`, `visible_to` and `label_ids` pass
 through, `email`/`phone` become `emails`/`phones` lists (sent only when a person is created), and every other column goes to
 `custom_fields`, so `field_mappings` must rename it to Pipedrive's 40-character key (an
 unknown key is rejected by Pipedrive and becomes a per-row error). The token is sent in
-the `x-api-token` header. Each row costs about 25 API tokens (search 20 + write 5). See
+the `x-api-token` header. If a create response is lost or returns 5xx, drt re-searches by
+the exact `match_field`: one result is success, multiple results are a RowError, and no
+result fails delivery-unknown because the search index may lag. `retry_creates: true`
+allows a blind replay after a miss and can create a duplicate; 429 and pre-send connection
+failures remain retryable without it. Each row costs about 25 API tokens (search 20 + write 5). See
 [Pipedrive connector docs](../connectors/pipedrive.md).
 
 ### `type: sqs`
@@ -1440,7 +1591,7 @@ destination:
     client_secret_env: GOOGLE_ADS_CLIENT_SECRET
 ```
 
-### `type: klaviyo` — safe historical events
+### `type: klaviyo` — replay-safe profiles and safe historical events
 
 ```yaml
 destination:
@@ -1454,6 +1605,7 @@ destination:
   value_field: amount                   # optional
   backfill: true                        # event only: record history without firing live flows
   revision: "2026-07-15"                # default and minimum when backfill=true
+  retry_creates: false                   # duplicate-risk profile/list escape hatch
 ```
 
 Use `backfill: true` for a first full event load or historical
@@ -1461,6 +1613,21 @@ Use `backfill: true` for a first full event load or historical
 without re-triggering customer-facing automations. It is rejected for profile
 mode and with a revision older than `2026-07-15`; turn it back off for live
 incremental events.
+
+For `endpoint: profile`, default `upsert` uses Klaviyo's native email-keyed
+`POST /api/profile-import` create-or-update endpoint, so retries reuse the same
+logical identity. `create_only` uses `POST /api/profiles/` and reconciles an
+ambiguous response with an exact email filter; `update_only` uses the same lookup
+and an ID-addressed PATCH. One match is accepted, multiple matches are refused,
+and a miss fails delivery-unknown because read visibility may lag. List-membership
+POSTs use the same fail-closed reconciliation rule. `retry_creates: true` allows
+a blind replay after a miss and emits a duplicate-risk warning. 429 and proven
+pre-send connection failures remain retryable; searches and ID-addressed updates
+keep normal retries. These paths are mock-verified only; no live Klaviyo account
+was available. Non-default match policies are rejected for `endpoint: event`.
+Event retries are keyed by the required stable `unique_id_field` together with
+the profile and metric, matching Klaviyo's documented deduplication tuple;
+`backfill` remains part of the unchanged retried payload.
 
 ### `type: meta_conversions`
 
@@ -1474,7 +1641,7 @@ destination:
   event_name: Purchase                  # exactly one of fixed/field name
   # event_name_field: event_name
   event_time_field: occurred_at         # required: Unix-seconds row field, real transaction time
-  event_id_field: event_id              # required: stable retry dedup id
+  event_id_field: event_id              # required: pair with the browser Pixel event id (Pixel<->server dedup; server<->server retry dedup is not documented)
   event_source_url_field: page_url
   email_field: email                    # normalized + SHA-256 → user_data.em[]
   phone_field: phone                    # digits only + SHA-256 → user_data.ph[]
